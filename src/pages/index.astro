@@ -1,0 +1,605 @@
+---
+import Base from "../layouts/Base.astro";
+import AreaGroup from "../components/journal/AreaGroup.astro";
+import Latest from "../components/journal/Latest.astro";
+import Hex from "../components/shell/Hex.astro";
+import Corner from "../components/shell/Corner.astro";
+import Constellation from "../components/shell/Constellation.astro";
+import { getImage } from "astro:assets";
+import back from "../assets/art/hero.jpg";
+import { site } from "../data/site";
+import { eventsById, groupByArea, visibleEntries } from "../lib/journal";
+
+const entries = await visibleEntries();
+const groups = await groupByArea(entries);
+const events = await eventsById();
+const latest = entries[0];
+const latestArea = latest && groups.find(({ area }) => area.id === latest.data.area.id)?.area;
+const published = entries.filter((entry) => !entry.data.draft).length;
+const { hero } = site;
+// One painting for the whole hero (a Hollow Knight scene, Team Cherry's art, for this personal site).
+// Two widths so small screens don't fetch the large one; webp, and img-src 'self' allows it.
+const backdrop = await getImage({ src: back, format: "webp", width: 2560, quality: 80 });
+const backdropSmall = await getImage({ src: back, format: "webp", width: 1280, quality: 78 });
+---
+
+<Base title="Taz · Moetez Zouari" description={site.oneLiner} current="home">
+  <div slot="stage" class="stage" aria-hidden="true">
+    <div class="plane" data-depth="0.5">
+      <img
+        class="art"
+        src={backdrop.src}
+        srcset={`${backdropSmall.src} 1280w, ${backdrop.src} 2560w`}
+        sizes="100vw"
+        alt=""
+        width={backdrop.attributes.width}
+        height={backdrop.attributes.height}
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
+    <div class="light"></div>
+    <div class="shade"></div>
+    <div class="plane" data-depth="1">
+      <div class="sparks">
+        <i class="shard s1"></i><i class="shard s2"></i><i class="shard s3"></i>
+        <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="orb o4"></i><i class="orb o5"></i>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero" aria-labelledby="hero-title" data-parallax data-atmos>
+    <div class="copy">
+      <h1 id="hero-title" class="enter i1">
+        <span class="hero-name">{site.handle}<span class="caret" aria-hidden="true">_</span></span>
+        <span class="sr-only"> — </span>
+      </h1>
+      <p class="line enter i2">
+        {hero.line.map((part) => <span>{part}</span>)}
+      </p>
+      <ul class="tags enter i3">
+        {
+          hero.tags.map((tag) => (
+            <li>
+              <a class="tag" href={tag.href} data-cursor="link">
+                <Hex name={tag.glyph} />
+                <span>{tag.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <a class="scroll enter i6" href="#journal-heading">
+      <Hex name="scroll" />
+      <span>scroll</span>
+    </a>
+
+    <div class="panels">
+      <aside class="exploring panel enter i4" aria-labelledby="exploring-title">
+        <Corner class="pc tl" /><Corner class="pc br" />
+        <h2 id="exploring-title" class="panel-title">currently exploring</h2>
+        <ul>
+          {
+            hero.exploring.map((item) => (
+              <li data-level={item.level}>
+                <span>{item.label}</span>
+                <i aria-hidden="true"></i>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+
+      <Constellation />
+
+      <aside class="memory panel enter i5" aria-hidden="true">
+        <Corner class="pc tl" /><Corner class="pc br" />
+        <h2 class="panel-title">memory map</h2>
+        <ul>
+          {
+            hero.memory.map((row) => (
+              <li>
+                <span>{row.label}</span>
+                <b data-fill={row.fill}><i></i></b>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="addr">{hero.address}<i></i></p>
+      </aside>
+    </div>
+
+    <blockquote class="quote enter i7">
+      {hero.quote.map((part, i) => <span>{i === 0 ? "« " : ""}{part}{i === hero.quote.length - 1 ? " »" : ""}</span>)}
+      <i class="spark" aria-hidden="true"></i>
+    </blockquote>
+  </section>
+
+  {
+    latest && latestArea && (
+      <div class="intro enter i6">
+        <Latest entry={latest} area={latestArea} />
+      </div>
+    )
+  }
+
+  <section class="section" aria-labelledby="journal-heading">
+    <h2 id="journal-heading" class="section-title"><a href="/journal/">Journal</a></h2>
+    {
+      published === 0 && (
+        <p class="status">
+          The Pioneers25 and Securinets Friendly 2026 writeups are being imported.
+        </p>
+      )
+    }
+    {groups.map(({ area, entries }) => <AreaGroup area={area} entries={entries} events={events} level={3} />)}
+  </section>
+</Base>
+
+<style>
+  /*
+   * The painting fills the first screen, inside the frame and behind the masthead, and
+   * fades into the page below it. It lives in Base's `stage` slot, outside the page column.
+   */
+  .stage {
+    position: absolute;
+    z-index: 0;
+    top: var(--inset);
+    inset-inline: var(--inset);
+    height: max(44rem, 100svh);
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: linear-gradient(180deg, #000 68%, transparent);
+  }
+
+  .stage .plane {
+    position: absolute;
+    inset: -14px;
+    will-change: translate;
+  }
+
+  .art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The Knight stands in the lower middle; keep him and the path in frame. */
+    object-position: 50% 62%;
+  }
+
+  /* The painting drifts a few pixels back and forth, but only while the hero is on screen. */
+  .art {
+    animation: var(--a-drift) var(--t-drift) ease-in-out infinite alternate;
+    animation-play-state: paused;
+  }
+
+  :global(body:has(.hero[data-live])) .art {
+    animation-play-state: running;
+  }
+
+  /* A slow pass of light through the mist. */
+  .light {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 30% 60% at 55% 50%, rgb(143 163 221 / 0.16), rgb(143 163 221 / 0));
+    opacity: 0;
+    animation: var(--a-light) var(--t-light) ease-in-out infinite;
+    animation-play-state: paused;
+  }
+
+  :global(body:has(.hero[data-live])) .light {
+    animation-play-state: running;
+  }
+
+  /* Darkens the painting to the page's night and keeps the words legible over it. */
+  .shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(7 7 10 / 0.82), rgb(7 7 10 / 0.3) 50%, rgb(7 7 10 / 0.1) 75%),
+      linear-gradient(180deg, rgb(7 7 10 / 0.55), rgb(7 7 10 / 0) 22%),
+      rgb(7 7 14 / 0.2);
+  }
+
+  .hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 1.5rem;
+    min-height: max(32rem, calc(100svh - 9rem));
+    margin-top: -1rem;
+    padding-block: 2rem 1.5rem;
+  }
+
+  .copy {
+    display: grid;
+    align-content: center;
+    gap: 1.25rem;
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .hero-name {
+    display: block;
+    font: 400 clamp(4.5rem, 12vw, 8rem) / 0.95 var(--font-display);
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 40px rgb(201 211 230 / 0.25);
+  }
+
+  /* The underscore breathes like the masthead caret: uneven, never quite off. */
+  .caret {
+    display: inline-block;
+    margin-inline-start: 0.15em;
+    font-size: 0.5em;
+    color: var(--ash);
+    animation: var(--a-breathe) 5s linear infinite;
+    animation-play-state: paused;
+  }
+
+  .hero[data-live] .caret {
+    animation-play-state: running;
+  }
+
+  .line {
+    display: grid;
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--soul);
+    max-width: 30rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.5rem;
+    list-style: none;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ash);
+    text-decoration: none;
+    font: 400 var(--step--1) / 1 var(--font-mono);
+    transition: color var(--t-micro) var(--standard);
+  }
+
+  .tag :global(.hex) {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .tag :global(.hex-shape) {
+    fill: rgb(14 24 40 / 0.55);
+    stroke: rgb(150 178 214 / 0.45);
+  }
+
+  .tag:hover {
+    color: var(--soul);
+  }
+
+  .tag:hover :global(.hex) {
+    rotate: 30deg;
+    color: var(--soul);
+  }
+
+  .tag:hover :global(.hex-shape) {
+    stroke: var(--glow);
+  }
+
+  .scroll {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--ash);
+    text-decoration: none;
+    font: 400 var(--step--1) / 1 var(--font-mono);
+    transition: color var(--t-micro) var(--standard);
+  }
+
+  .scroll:hover {
+    color: var(--soul);
+  }
+
+  .scroll :global(.hex .glyph) {
+    animation: var(--a-hop) 2.8s var(--standard) infinite;
+    animation-play-state: paused;
+  }
+
+  .hero[data-live] .scroll :global(.hex .glyph) {
+    animation-play-state: running;
+  }
+
+  /* The right column: two panels side by side, wrapping under each other when narrow. */
+  .panels {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    justify-self: end;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* The panels take the painting's slate blue, so they read as part of it, not laid on it. */
+  .panels .panel {
+    width: 12rem;
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-color: rgb(150 178 214 / 0.28);
+    background: linear-gradient(180deg, rgb(34 54 82 / 0.5), rgb(14 24 40 / 0.62));
+    backdrop-filter: blur(8px) saturate(1.1);
+    box-shadow: inset 0 1px 0 rgb(190 208 232 / 0.08), 0 10px 30px rgb(4 8 16 / 0.35);
+  }
+
+  .panels :global(.pc :is(.c-main, .c-echo, .c-vine, .c-thorn)) {
+    stroke: rgb(150 178 214 / 0.7);
+  }
+
+  .panels .exploring {
+    width: 13.5rem;
+  }
+
+  .panels .panel-title {
+    white-space: nowrap;
+    color: rgb(170 190 216);
+  }
+
+  .panels :global(.constellation) {
+    align-self: center;
+  }
+
+  .panels ul {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.8rem;
+    list-style: none;
+    font: 400 var(--step--1) / 1.3 var(--font-mono);
+    color: var(--ash);
+  }
+
+  .exploring li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .exploring li span::before {
+    content: "> ";
+    color: var(--dust);
+  }
+
+  .exploring li i {
+    width: 7px;
+    height: 7px;
+    border: 1px solid rgb(150 178 214 / 0.6);
+    border-radius: 50%;
+  }
+
+  .exploring li[data-level="2"] i {
+    background: var(--glow);
+    border-color: var(--glow);
+    box-shadow: 0 0 8px rgb(201 211 230 / 0.6);
+  }
+
+  .exploring li[data-level="1"] i {
+    background: rgb(150 178 214 / 0.6);
+  }
+
+  .memory li {
+    display: grid;
+    grid-template-columns: 2.9rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .memory b {
+    display: block;
+    height: 0.7rem;
+    border: 1px solid rgb(150 178 214 / 0.25);
+    border-radius: 2px;
+    background: rgb(6 12 22 / 0.7);
+  }
+
+  .memory b i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, rgb(64 94 134 / 0.7), rgb(150 178 214 / 0.85));
+    transform-origin: 0 50%;
+    animation: var(--a-bar) var(--t-page) var(--spring) calc(var(--base) + 500ms + var(--n, 0) * 90ms) both;
+  }
+
+  .memory li:nth-child(1) { --n: 0; }
+  .memory li:nth-child(2) { --n: 1; }
+  .memory li:nth-child(3) { --n: 2; }
+  .memory li:nth-child(4) { --n: 3; }
+
+  .memory b[data-fill="1"] i { width: 20%; }
+  .memory b[data-fill="2"] i { width: 40%; }
+  .memory b[data-fill="3"] i { width: 60%; }
+  .memory b[data-fill="4"] i { width: 80%; }
+  .memory b[data-fill="5"] i { width: 100%; }
+
+  .addr {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.8rem;
+    font: 400 0.6875rem / 1 var(--font-mono);
+    color: var(--dust);
+  }
+
+  .addr i {
+    width: 6px;
+    height: 6px;
+    border: 1px solid rgb(150 178 214 / 0.6);
+    rotate: 45deg;
+  }
+
+  .quote {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    justify-self: end;
+    display: grid;
+    text-align: right;
+    font: italic 400 var(--step-0) / 1.5 var(--font-read);
+    color: var(--ash);
+  }
+
+  /* A small diamond and a fading line close the quote. */
+  .spark {
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+    width: 4rem;
+  }
+
+  .spark::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background: var(--glow);
+    rotate: 45deg;
+  }
+
+  .spark::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--edge-lit), transparent);
+  }
+
+  /* Light shards and orbs hang in the air over the painting. They sit on the nearest plane, so they follow the pointer most. */
+  .sparks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .sparks i {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+  }
+
+  .shard {
+    width: 7px;
+    height: 24px;
+    clip-path: polygon(50% 0, 100% 38%, 50% 100%, 0 38%);
+    background: linear-gradient(180deg, rgb(230 235 241 / 0.9), rgb(154 163 174 / 0.5));
+    rotate: var(--r, 12deg);
+    opacity: 0.6;
+    animation: var(--a-float) var(--d, 11s) ease-in-out var(--w, 0s) infinite;
+    animation-play-state: paused;
+  }
+
+  .orb {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--soul), rgb(201 211 230 / 0) 70%);
+    box-shadow: 0 0 10px 2px rgb(201 211 230 / 0.35);
+    opacity: 0.8;
+    animation: var(--a-breathe) var(--d, 7s) linear var(--w, 0s) infinite;
+    animation-play-state: paused;
+  }
+
+:global(body:has(.hero[data-live])) .sparks i {
+    animation-play-state: running;
+  }
+
+  .s1 { --x: 47%; --y: 26%; --r: 14deg; --d: 12s; --fx: 7px; }
+  .s2 { --x: 53%; --y: 47%; --r: -8deg; --d: 15s; --w: -4s; --fx: -6px; }
+  .s3 { --x: 70%; --y: 58%; --r: 24deg; --d: 10s; --w: -7s; --fx: 9px; }
+  .o1 { --x: 56%; --y: 40%; --d: 6s; }
+  .o2 { --x: 64%; --y: 30%; --d: 9s; --w: -2s; }
+  .o3 { --x: 44%; --y: 66%; --d: 8s; --w: -5s; }
+  .o4 { --x: 78%; --y: 78%; --d: 7s; --w: -1s; }
+  .o5 { --x: 88%; --y: 32%; --d: 11s; --w: -6s; }
+
+  .intro {
+    margin-top: -1rem;
+  }
+
+  .section-title a {
+    text-decoration: none;
+  }
+
+  .section-title a:hover {
+    color: var(--cloak);
+  }
+
+  @media (max-width: 80rem) {
+    .panels {
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto;
+      /* The painting gets the top of the hero to itself, so the knight is not behind the words. */
+      padding-top: 12rem;
+    }
+
+    .stage {
+      height: 30rem;
+    }
+
+    .art {
+      object-position: 50% 68%;
+    }
+
+    /* The panels share the row, or stack when it is too narrow for two. */
+    .panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+      justify-self: stretch;
+    }
+
+    .panels .panel,
+    .panels .exploring {
+      width: auto;
+    }
+
+    .panels :global(.constellation) {
+      display: none;
+    }
+
+    .copy,
+    .panels,
+    .quote {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .quote {
+      justify-self: start;
+      text-align: left;
+    }
+
+    .quote .spark {
+      justify-self: start;
+    }
+
+    .scroll {
+      display: none;
+    }
+
+    .shade {
+      background: linear-gradient(180deg, rgb(7 7 10 / 0.1), rgb(7 7 10 / 0.5));
+    }
+  }
+</style>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://taz.tn/sitemap.xml

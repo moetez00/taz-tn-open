@@ -1,0 +1,10 @@
+# This site is deployed only by .github/workflows/ci.yml, which uploads the
+# exact build that passed every check (scripts/deploy-netlify.mjs).
+#
+# Guard: if the Netlify project is ever linked to this repository again,
+# Netlify must never build or publish from Git. `ignore` exiting 0 cancels the
+# build; `publish` points at a folder that doesn't exist before a build, so
+# even a forced build fails instead of publishing the raw repository.
+[build]
+  ignore = "exit 0"
+  publish = "dist"

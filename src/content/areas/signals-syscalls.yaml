@@ -1,0 +1,3 @@
+name: Signals & Syscalls
+blurb: The kernel interface, from signal handlers to raw syscalls.
+order: 4

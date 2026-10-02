@@ -1,0 +1,3 @@
+name: Format Strings
+blurb: User input as the format string, and what it can read and write.
+order: 1

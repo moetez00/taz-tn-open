@@ -1,0 +1,271 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Hex from "../../components/shell/Hex.astro";
+import { getImage } from "astro:assets";
+import Corner from "../../components/shell/Corner.astro";
+import Mask from "../../components/shell/Mask.astro";
+import banner from "../../assets/art/banner.jpg";
+import { formatPeriod } from "../../lib/format";
+import { projectGlyph } from "../../lib/glyphs";
+import { site } from "../../data/site";
+
+const projects = (await getCollection("projects", (project) => !project.data.draft)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const scene = await getImage({ src: banner, format: "webp", width: 2000, quality: 78 });
+const hasCaseStudy = (body?: string) => Boolean(body?.trim());
+---
+
+<Base title="Projects · Taz" description="Web apps and tools Taz has built and shipped." current="projects">
+  <header class="head">
+    <h1 class="page-title enter i1">Projects</h1>
+    <p class="status enter i2">{site.projectsLine}</p>
+  </header>
+
+  <ul class="cards">
+    {
+      projects.map(({ id, body, data }, index) => {
+        const commits = data.commits && [
+          `${data.commits.mine} of ${data.commits.total} commits`,
+          data.commits.contributors && `${data.commits.contributors} contributors`,
+        ].filter(Boolean).join(", ");
+        const facts = [commits, ...data.facts].filter(Boolean);
+        const open = hasCaseStudy(body);
+        return (
+          <li class:list={["card panel enter", `i${Math.min(9, index + 4)}`, open && `vp-${id}`]} data-cursor={open ? "view" : undefined}>
+            <Corner class="pc bl" /><Corner class="pc br" />
+            <Hex name={projectGlyph(id)} />
+            <div class="main">
+              <h2 class="card-heading">
+                {open ? <a class="card-title" href={`/projects/${id}/`}>{data.title}</a> : data.title}
+              </h2>
+              <p class="summary">{data.summary}</p>
+              {facts.length > 0 && (
+                <ul class="facts">
+                  {facts.map((fact) => (
+                    <li>{fact}</li>
+                  ))}
+                </ul>
+              )}
+              {data.stack.length > 0 && (
+                <ul class="stack">
+                  {data.stack.map((tech) => (
+                    <li class="chip">{tech}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div class="facts-row meta">
+              {data.status && <span class="badge">{data.status}</span>}
+              {data.period && <span>{formatPeriod(data.period.from, data.period.to)}</span>}
+              {(data.url || data.repo) && (
+                <span class="links">
+                  {data.url && <a href={data.url}>Site</a>}
+                  {data.repo && <a href={data.repo}>Source</a>}
+                </span>
+              )}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ul>
+
+  <aside class="scene enter i9">
+    <img class="art" src={scene.src} alt="" width={scene.attributes.width} height={scene.attributes.height} decoding="async" loading="lazy" />
+    <p class="quote">
+      <span>« {site.projectsQuote} »</span>
+      <Mask />
+    </p>
+  </aside>
+</Base>
+
+<style>
+  .head {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  /*
+   * The Knight's scene closes the page. It is recoloured to the site's own violet-blue night
+   * (a colour blend over a grey painting), darkened, and its edges dissolve into the page,
+   * so it reads as part of the same world and not as a picture set on it.
+   */
+  .scene {
+    position: relative;
+    display: grid;
+    align-items: center;
+    justify-items: end;
+    min-height: clamp(11rem, 22vw, 16rem);
+    padding: 1.25rem clamp(2rem, 8vw, 6rem);
+    isolation: isolate;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+      linear-gradient(180deg, transparent, #000 28%, #000 72%, transparent);
+    mask-composite: intersect;
+  }
+
+  .scene .art {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 93%;
+    filter: grayscale(1) contrast(1.1) brightness(0.75);
+  }
+
+  .scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(ellipse at 45% 60%, #4a4d6e, #2b2d40 70%);
+    mix-blend-mode: color;
+  }
+
+  .quote {
+    display: grid;
+    justify-items: center;
+    gap: 0.6rem;
+    font: italic 400 var(--step-1) / 1.4 var(--font-read);
+    color: var(--soul);
+    text-shadow: 0 1px 14px rgb(7 7 10 / 0.9);
+  }
+
+  .quote :global(.mask) {
+    width: 1.5rem;
+    color: var(--ash);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    list-style: none;
+  }
+
+  .card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 0.75rem 0.9rem;
+    padding: 1.15rem 1.25rem 1.75rem;
+    transition:
+      border-color var(--t-micro) var(--standard),
+      translate var(--t-micro) var(--decel),
+      box-shadow var(--t-micro) var(--standard);
+  }
+
+  .card:hover,
+  .card:has(:focus-visible) {
+    border-color: var(--edge-lit);
+    translate: 0 -3px;
+    box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 0.4), 0 0 0 1px rgb(74 77 110 / 0.35);
+  }
+
+  .card:hover :global(.hex),
+  .card:has(:focus-visible) :global(.hex) {
+    color: var(--soul);
+    rotate: 30deg;
+  }
+
+  .card:hover :global(.hex-shape) {
+    stroke: var(--glow);
+  }
+
+  .main {
+    display: grid;
+    align-content: start;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .card-heading {
+    font-size: var(--step-0);
+    line-height: 1.3;
+  }
+
+  /* The whole card is the target: the title's link stretches over it. */
+  .card-title {
+    color: var(--soul);
+    text-decoration: none;
+  }
+
+  .card-title::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .card-title:focus-visible {
+    outline: none;
+  }
+
+  .summary {
+    font-size: var(--step--1);
+    line-height: 1.5;
+    color: var(--ash);
+  }
+
+  /* The checked facts stay, two lines each; the whole text is still in the page. */
+  .facts {
+    display: grid;
+    gap: 0.15rem;
+    list-style: none;
+    font-size: var(--step--1);
+    line-height: 1.45;
+    color: var(--dust);
+  }
+
+  .facts li {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+  }
+
+  .facts-row {
+    grid-column: 1 / -1;
+    margin-top: auto;
+    font: 400 var(--step--2) / 1.4 var(--font-mono);
+    color: var(--dust);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.9rem;
+  }
+
+  .links {
+    position: relative;
+    display: flex;
+    gap: 0.9rem;
+  }
+
+  .links a {
+    color: var(--ash);
+  }
+
+  @media (max-width: 62rem) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

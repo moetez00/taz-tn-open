@@ -1,0 +1,127 @@
+---
+import "../styles/fonts.css";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import "../styles/motion.css";
+import "../styles/world.css";
+import "../styles/layers.css";
+import "virtual:taz-vt-names.css";
+import readFont from "../assets/fonts/taz-read-400.woff2?url";
+import displayFont from "../assets/fonts/taz-display-400.woff2?url";
+// Copied as-is with a content hash, then loaded as a classic render-blocking script.
+import bootScript from "../scripts/boot.js?url";
+import Masthead from "../components/shell/Masthead.astro";
+import Footer from "../components/shell/Footer.astro";
+import Corner from "../components/shell/Corner.astro";
+import Pendant from "../components/shell/Pendant.astro";
+import SearchPalette from "../components/overlays/SearchPalette.astro";
+import Keybinds from "../components/overlays/Keybinds.astro";
+import type { Section } from "../data/site";
+
+interface Props {
+  title: string;
+  description: string;
+  current?: Section;
+  indexable?: boolean;
+  /** Entry pages: a line along the top edge fills as you read. */
+  progress?: boolean;
+}
+
+const { title, description, current, indexable = true, progress = false } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+// One share image for the whole site, drawn by scripts/og.py.
+const shareImage = new URL("/og.png", Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline src={bootScript}></script>
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {indexable ? <link rel="canonical" href={canonical.href} /> : <meta name="robots" content="noindex" />}
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#07070a" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="Taz · Journal" href="/feed.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Taz" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={shareImage.href} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Taz, Moetez Zouari: ships web apps to real users and writes exploitation challenges for CTF players." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" href={readFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={displayFont} as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <slot name="stage" />
+    <div class="veil" aria-hidden="true"></div>
+    <div class="motes dust" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="world" aria-hidden="true">
+      <i class="side t"></i><i class="side r"></i><i class="side b"></i><i class="side l"></i>
+      <Corner class="tl" /><Corner class="tr" /><Corner class="bl" /><Corner class="br" />
+      {current === "home" && <Pendant />}
+    </div>
+    <div class="page" id="top">
+      {progress && <span class="progress" aria-hidden="true" />}
+      <Masthead current={current} />
+      <main id="main" tabindex="-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+    <div class="cursor" aria-hidden="true"><i class="dot"></i><div class="follow"><i class="ring"></i><b class="tag"></b></div></div>
+    <SearchPalette />
+    <Keybinds />
+  </body>
+</html>
+
+<script>
+  import "../scripts/keys";
+</script>
+
+<style>
+  /*
+   * Reading progress: a line along the frame's top edge fills with the accent as
+   * the page scrolls (scroll-driven, no JS). It is position, not motion, so it stays
+   * with reduced motion. Browsers without scroll timelines show nothing.
+   */
+  .progress {
+    display: none;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .progress {
+      display: block;
+      position: fixed;
+      top: var(--inset);
+      left: var(--inset);
+      right: var(--inset);
+      z-index: 35;
+      height: 2px;
+      background: var(--cloak-deep);
+      transform-origin: left;
+      animation: read linear both;
+      pointer-events: none;
+    }
+
+    /* Its own, more specific rule: minifiers fold animation-timeline into the
+       animation shorthand, where browsers reject it and drop the whole line. */
+    span.progress {
+      animation-timeline: scroll(root block);
+    }
+  }
+
+  @keyframes read {
+    from {
+      transform: scaleX(0);
+    }
+  }
+</style>

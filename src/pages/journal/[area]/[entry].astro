@@ -1,0 +1,35 @@
+---
+import { getEntry, render } from "astro:content";
+import Entry from "../../../layouts/Entry.astro";
+import { visibleEntries, type Entry as JournalEntry } from "../../../lib/journal";
+
+export async function getStaticPaths() {
+  const entries = await visibleEntries();
+  return entries.map((entry) => {
+    const [area, slug] = entry.id.split("/");
+    const siblings = entries.filter((other) => other.data.area.id === area);
+    const index = siblings.indexOf(entry);
+    return {
+      params: { area, entry: slug },
+      props: { entry, prev: siblings[index - 1], next: siblings[index + 1] },
+    };
+  });
+}
+
+interface Props {
+  entry: JournalEntry;
+  prev?: JournalEntry;
+  next?: JournalEntry;
+}
+
+const { entry, prev, next } = Astro.props;
+const area = await getEntry(entry.data.area);
+const event = entry.data.event ? await getEntry(entry.data.event) : undefined;
+if (!area) throw new Error(`journal/${entry.id}: unknown area "${entry.data.area.id}"`);
+if (entry.data.event && !event) throw new Error(`journal/${entry.id}: unknown event "${entry.data.event.id}"`);
+const { Content, headings } = await render(entry);
+---
+
+<Entry entry={entry} area={area} event={event} headings={headings} prev={prev} next={next}>
+  <Content />
+</Entry>

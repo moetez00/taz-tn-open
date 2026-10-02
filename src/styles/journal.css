@@ -1,0 +1,341 @@
+/*
+ * The Journal's master and detail: a timeline of entries on the left and, on the right, a
+ * preview of the selected one. All previews are in the page, stacked in one cell; journal.ts
+ * selects one: the row under the pointer or the focus, and a click pins it, so the preview
+ * stays when the pointer leaves. The list scrolls on its own and the preview stays put. The
+ * preview column touches the list, so moving from a row to its preview never drops the
+ * selection.
+ */
+.jr-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  align-items: start;
+}
+
+.jr-side {
+  display: grid;
+  gap: 1.25rem;
+  padding-right: 0.5rem;
+}
+
+.jr-head {
+  display: grid;
+  gap: 0.6rem;
+}
+
+/* Own scroll: the page stays still while the timeline moves. */
+.jr-list {
+  max-height: max(20rem, calc(100dvh - 21rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 2.5rem;
+  border-top: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--edge-lit) transparent;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+}
+
+.jr-list > li {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  padding: 0.9rem 1rem 0.9rem 2rem;
+  border-bottom: 0;
+}
+
+/* The selection frame, like the mockup's: a hairline box on the panel surface. */
+.jr-list > li::before {
+  inset: 0;
+  border: 1px solid var(--edge-lit);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgb(20 22 32 / 0.6), var(--panel));
+}
+
+/* The rail the dots hang from, one piece per row so it scrolls with them. */
+.jr-list > li::after {
+  content: "";
+  position: absolute;
+  left: 0.45rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--edge);
+  z-index: -1;
+}
+
+.jr-list > li:first-child::after {
+  top: 1.4rem;
+}
+
+.jr-list > li:last-child::after {
+  bottom: auto;
+  height: 1.4rem;
+}
+
+.jr-list .jr-dot {
+  position: absolute;
+  left: calc(0.45rem - 3px);
+  top: 1.35rem;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--edge-lit);
+  border-radius: 50%;
+  background: var(--void);
+  transition: background-color var(--t-effect) var(--standard), box-shadow var(--t-effect) var(--standard);
+}
+
+.jr-list .jr-date,
+.jr-list .jr-tech {
+  display: block;
+}
+
+.jr-pvs {
+  display: grid;
+  position: sticky;
+  top: 1rem;
+}
+
+.jr-pv {
+  grid-area: 1 / 1;
+  padding-left: 1.5rem;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.jr-card {
+  container-type: inline-size;
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.75rem 2rem 2rem;
+  background: rgb(11 12 17 / 0.78);
+}
+
+.jr-crumb {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.jr-title {
+  padding-right: 4rem;
+  font-size: var(--step-2);
+  line-height: 1.25;
+}
+
+.jr-sum {
+  max-width: 28rem;
+  color: var(--ash);
+}
+
+/* The figure: the entry's sections beside its profile, as the ELF and memory boxes in the mockup. */
+.jr-fig {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: rgb(7 7 10 / 0.45);
+}
+
+.jr-box {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem 1rem;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: var(--panel);
+}
+
+.jr-box-facts:only-child {
+  grid-column: 1 / -1;
+}
+
+.jr-label {
+  font: 400 var(--step-0) / 1.2 var(--font-read);
+  color: var(--soul);
+}
+
+.jr-box-facts .jr-label {
+  font: 400 var(--step--1) / 1.2 var(--font-mono);
+  color: var(--dust);
+}
+
+.jr-secs {
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.jr-secs li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--edge);
+  border-left: 2px solid var(--edge-lit);
+  font: 400 var(--step--1) / 1.3 var(--font-mono);
+  color: var(--ash);
+  overflow: hidden;
+}
+
+.jr-secs li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jr-secs li b {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  rotate: 45deg;
+  background: var(--edge-lit);
+}
+
+.jr-facts {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.jr-facts > div {
+  display: grid;
+  grid-template-columns: 6.4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+  font: 400 var(--step--1) / 1.3 var(--font-mono);
+}
+
+.jr-facts dt {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--edge);
+  color: var(--dust);
+}
+
+.jr-facts dd {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--ash);
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.jr-meter {
+  flex: none;
+  width: 2.2rem;
+  height: 0.5rem;
+  background: var(--line);
+}
+
+.jr-meter i {
+  display: block;
+  height: 100%;
+  background: var(--edge-lit);
+}
+
+/* The card sets its own breakpoint: the sections and the profile stack when it is narrow. */
+@container (max-width: 34rem) {
+  .jr-fig {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.m1 i { width: 25%; }
+.m2 i { width: 50%; }
+.m3 i { width: 75%; }
+.m4 i { width: 100%; }
+
+.jr-cta {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--edge-lit);
+  border-radius: 6px;
+  font: 400 var(--step--1) / 1.3 var(--font-mono);
+  color: var(--soul);
+  text-decoration: none;
+  transition: border-color var(--t-micro) var(--standard), background-color var(--t-micro) var(--standard);
+}
+
+.jr-cta:hover {
+  border-color: var(--glow);
+  background: var(--raised);
+}
+
+.jr-stars {
+  position: absolute;
+  right: 1.75rem;
+  top: 5.6rem;
+  width: 5rem;
+  height: 5rem;
+  fill: none;
+  stroke: var(--edge-lit);
+  stroke-width: 0.9;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.jr-stars circle {
+  fill: var(--panel);
+}
+
+/* The selected preview and its row: journal.ts moves .on. The first one is .on in the markup,
+   so with no script it is the one shown. */
+.jr-pv.on {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.jr-pv.on .jr-card {
+  animation: var(--a-lift) var(--t-spatial) var(--decel) both;
+}
+
+.jr-list > li.on::before {
+  opacity: 1;
+}
+
+.jr-list > li.on .jr-dot {
+  background: var(--glow);
+  box-shadow: 0 0 0 2px var(--panel), 0 0 0 3px var(--edge-lit), 0 0 8px rgb(201 211 230 / 0.6);
+}
+
+@media (max-width: 52rem) {
+  /* Touch has no hover, so the list is all there is: previews step aside and the page scrolls. */
+  .jr-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jr-side {
+    padding-right: 0;
+  }
+
+  .jr-list {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0;
+    mask-image: none;
+  }
+
+  .jr-pvs {
+    display: none;
+  }
+
+  /* With no preview there is nothing to select, so no row is lit. */
+  .jr-list > li.on::before {
+    opacity: 0;
+  }
+
+  .jr-list > li.on .jr-dot {
+    background: var(--void);
+    box-shadow: none;
+  }
+}

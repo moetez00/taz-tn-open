@@ -1,0 +1,111 @@
+/*
+ * Design tokens. Every value here is specified in PLAN.md §3.1. scripts/check-contrast.mjs reads the palette from this
+ * file and fails the build if a text pair drops below WCAG AA.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Palette: void and soul, with the mockup's soft amber as the only accent. */
+  --void: #07070a;
+  --raised: #101116;
+  --line: #23252d;
+  --line-2: #33363f;
+  --soul: #e6ebf1;
+  --ash: #9aa3ae;
+  --dust: #7a828f;
+  --cloak-deep: #8a5a2b;
+  --cloak: #c68e58;
+
+  /* Panels sit between void and raised; edges carry the faint violet-blue of the frame art. */
+  --panel: #0b0c11;
+  --edge: #2b2d40;
+  --edge-lit: #4a4d6e;
+  --glow: #c9d3e6;
+
+  /*
+   * Code, on --raised. Greys plus one parchment tone for literals; the accent stays
+   * out of code because Direction B keeps it for the active nav, focus and links.
+   * src/lib/code-theme.mjs builds the Shiki theme from these values.
+   */
+  --code-text: #d2d8e0;
+  --code-strong: #f4f6f9;
+  --code-literal: #d8c6a0;
+  --code-comment: #9aa3ae;
+  --code-punct: #8a929e;
+
+  /* Type */
+  --font-read: "Taz Read", "Taz Read Fallback", Georgia, "Times New Roman", serif;
+  --font-display: "Taz Display", "Taz Display Fallback", Georgia, serif;
+  --font-mono: "Taz Mono", "Taz Mono Fallback", ui-monospace, Menlo, Consolas, monospace;
+
+  --step--2: 0.75rem;
+  --step--1: 0.8125rem;
+  --step-0: 1.125rem;
+  --step-1: 1.3125rem;
+  --step-2: clamp(1.375rem, 1.15rem + 1vw, 1.75rem);
+  --step-3: clamp(1.75rem, 1.35rem + 1.8vw, 2.5rem);
+
+  --tracking-caps: 0.34em;
+
+  /* Layout */
+  --frame: 80rem;
+  --measure: 38rem;
+  --gutter: clamp(1.25rem, 4vw, 3rem);
+  --radius: 3px;
+
+  /*
+   * Motion (PLAN.md §3), in three levels so it reads as a hierarchy:
+   *   1 micro: links, buttons, cards, tags. 120-250 ms, almost subconscious.
+   *   2 UI: layers, pages, inspection. 300-600 ms, noticeable.
+   *   3 atmosphere: art, motes, light. 5-26 s, barely noticed.
+   * --spring is critically damped (zeta 1.0, k 800, m 1, the niri default);
+   * --spring-soft overshoots by 4% (zeta 0.72) for things that travel and
+   * settle, like the nav underline. Exits are faster than entrances.
+   */
+  --spring: linear(0, 0.0229, 0.079, 0.1536, 0.2366, 0.3215, 0.4038, 0.481, 0.5518, 0.6155, 0.672, 0.7215, 0.7646, 0.8017, 0.8336, 0.8607, 0.8838, 0.9032, 0.9196, 0.9333, 0.9448, 0.9544, 0.9624, 0.969, 0.9745, 0.9791, 0.9828, 0.9859, 0.9885, 0.9906, 0.9923, 0.9937, 0.9949, 0.9958, 0.9966, 0.9972, 0.9977, 0.9982, 0.9985, 0.9988, 1);
+  --spring-soft: linear(0, 0.0303, 0.1064, 0.2095, 0.3253, 0.4431, 0.5556, 0.6581, 0.7478, 0.8236, 0.8857, 0.9347, 0.972, 0.9992, 1.0179, 1.0296, 1.036, 1.0383, 1.0377, 1.0352, 1.0314, 1.027, 1.0225, 1.0181, 1.0141, 1.0105, 1.0074, 1.0049, 1.0029, 1.0014, 1.0003, 0.9995, 0.999, 0.9987, 0.9985, 0.9985, 0.9986, 0.9988, 0.9989, 0.9991, 1);
+  --decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --accel: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --standard: cubic-bezier(0.2, 0, 0, 1);
+  --sweep: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Level 1 */
+  --t-effect: 150ms;
+  --t-micro: 210ms;
+  --t-exit: 120ms;
+  --t-back: 140ms;
+  --t-bloom: 200ms;
+  /* Level 2 */
+  --t-layer: 300ms;
+  --t-spatial: 327ms;
+  --t-trail: 490ms;
+  --t-page: 540ms;
+  /* Level 3 */
+  --t-breathe: 5.3s;
+  --t-mote: 14s;
+  --t-drift: 19s;
+  --t-light: 26s;
+}
+
+/* Reduced motion is a single switch: every duration goes to zero. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-effect: 0ms;
+    --t-micro: 0ms;
+    --t-exit: 0ms;
+    --t-back: 0ms;
+    --t-bloom: 0ms;
+    --t-layer: 0ms;
+    --t-spatial: 0ms;
+    --t-trail: 0ms;
+    --t-page: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

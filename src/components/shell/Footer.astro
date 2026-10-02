@@ -1,0 +1,156 @@
+---
+import { site } from "../../data/site";
+import Hex from "./Hex.astro";
+---
+
+<footer class="footer">
+  <div class="rule settle" aria-hidden="true"><i></i><i></i></div>
+  <div class="row">
+    <p class="who settle">
+      <Hex name="mask" />
+      <span>{site.name} · Tunis</span>
+      {/* The hidden map's unlabeled mark (PLAN.md §2): the same diamond as "you are here". */}
+      <a class="map-mark" href="/journal/map/" aria-label="Map"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="3" y="3" width="6" height="6" transform="rotate(45 6 6)"></rect></svg></a>
+    </p>
+    <ul class="links settle">
+      <li><a href={site.links.github}>GitHub</a></li>
+      <li><a href={site.links.linkedin}>LinkedIn</a></li>
+      <li><a href="/feed.xml">RSS</a></li>
+      <li><a href="/security/">Security</a></li>
+      <li><a href="/theme/">Theme</a></li>
+    </ul>
+  </div>
+  {/* Without JS the Keys link goes to About, which lists the keys. */}
+  <ul class="meta keys settle">
+    <li class="keys-hint"><a href="/about/#keys" data-open="keys">Keys <kbd>?</kbd></a></li>
+    <li><a href="#top">Top <kbd>g</kbd><kbd>g</kbd></a></li>
+  </ul>
+</footer>
+
+<style>
+  .footer {
+    display: grid;
+    gap: 1rem;
+    padding-block: 0 1.75rem;
+  }
+
+  /* A rule that ends in two diamonds: the end of the path. */
+  .rule {
+    position: relative;
+    height: 1px;
+    margin-inline: 3px;
+    background: linear-gradient(90deg, var(--edge), var(--line) 50%, var(--edge));
+  }
+
+  .rule i {
+    position: absolute;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--edge-lit);
+    background: var(--void);
+    transform: rotate(45deg);
+  }
+
+  .rule i:first-child {
+    left: -3px;
+  }
+
+  .rule i:last-child {
+    right: -3px;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+  }
+
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    color: var(--ash);
+  }
+
+  .who :global(.hex) {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    list-style: none;
+  }
+
+  .links a {
+    color: var(--ash);
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--dust);
+  }
+
+  .links a:hover {
+    color: var(--cloak);
+  }
+
+  .keys a {
+    color: var(--dust);
+    text-decoration: none;
+  }
+
+  .keys a:hover {
+    color: var(--soul);
+  }
+
+  kbd {
+    margin-left: 0.2em;
+    color: var(--ash);
+  }
+
+  .map-mark {
+    display: inline-block;
+    padding: 0.35rem;
+  }
+
+  .map-mark svg {
+    display: block;
+    width: 0.7rem;
+    height: 0.7rem;
+    fill: none;
+    stroke: var(--dust);
+    stroke-width: 1.2;
+    transition: stroke var(--t-micro) var(--standard);
+  }
+
+  .map-mark:hover svg {
+    stroke: var(--cloak);
+  }
+
+  /*
+   * The world going quiet: as the footer scrolls into view its parts settle into place
+   * one by one, while the dust above thins out (world.css). Scroll-driven, no JS.
+   */
+  @supports (animation-timeline: view()) {
+    .settle {
+      animation: var(--a-lift) linear both;
+      --rise: 10px;
+    }
+
+    /* Its own, more specific rule: minifiers fold animation-timeline into the shorthand. */
+    .footer .settle {
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+
+  /* No keyboard, no key list. */
+  @media (hover: none) and (pointer: coarse) {
+    .keys-hint {
+      display: none;
+    }
+  }
+</style>

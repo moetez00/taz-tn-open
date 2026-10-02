@@ -1,0 +1,48 @@
+---
+// A project gets its own page once its Markdown file has a case study in the body.
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import "../../styles/prose.css";
+import "../../styles/code.css";
+import { formatPeriod } from "../../lib/format";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects", (project) => !project.data.draft && Boolean(project.body?.trim()));
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props as { project: CollectionEntry<"projects"> };
+const { title, summary, stack, period, url, repo, status } = project.data;
+const { Content } = await render(project);
+---
+
+<Base title={`${title} · Projects · Taz`} description={summary} current="projects">
+  <header class={`section sheet panel vp-${project.id}`}>
+    <p class="meta"><a href="/projects/">Projects</a></p>
+    <h1 class={`page-title vpt-${project.id}`}>{title}</h1>
+    <p class="status">{summary}</p>
+    <p class="meta">
+      {[status, period && formatPeriod(period.from, period.to), stack.join(" · ")].filter(Boolean).join(" · ")}
+    </p>
+    {
+      (url || repo) && (
+        <p class="meta">
+          {url && <a href={url}>Site</a>} {repo && <a href={repo}>Source</a>}
+        </p>
+      )
+    }
+  </header>
+  <div class="prose" data-prose>
+    <Content />
+  </div>
+</Base>
+
+<style>
+  .sheet {
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .sheet .page-title {
+    width: fit-content;
+  }
+</style>

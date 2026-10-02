@@ -1,0 +1,125 @@
+---
+import Base from "../../../layouts/Base.astro";
+import EntryRow from "../../../components/journal/EntryRow.astro";
+import { eventsById, groupByArea, visibleEntries, type Area, type Entry } from "../../../lib/journal";
+
+export async function getStaticPaths() {
+  const groups = await groupByArea(await visibleEntries());
+  return groups.map(({ area, entries }) => ({ params: { area: area.id }, props: { area, entries } }));
+}
+
+interface Props {
+  area: Area;
+  entries: Entry[];
+}
+
+const { area, entries } = Astro.props;
+const events = await eventsById();
+const onlyDrafts = entries.every((entry) => entry.data.draft);
+---
+
+<Base
+  title={`${area.data.name} · Journal · Taz`}
+  description={area.data.blurb}
+  current="journal"
+  indexable={!onlyDrafts}
+>
+  <p class="meta crumb"><a href="/journal/">Journal</a></p>
+
+  <header class="title-card">
+    <h1 class="name">{area.data.name}</h1>
+    <span class="ornament" aria-hidden="true"></span>
+    <p class="blurb">{area.data.blurb}</p>
+  </header>
+
+  <ul class="rows">
+    {entries.map((entry) => <EntryRow entry={entry} event={entry.data.event && events.get(entry.data.event.id)} />)}
+  </ul>
+</Base>
+
+<style>
+  .crumb a {
+    color: var(--ash);
+  }
+
+  /* Hollow Knight's area title card, held still: name, ornament, one line. */
+  .title-card {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    text-align: center;
+    padding-block: clamp(0.5rem, 3vw, 2rem);
+  }
+
+  .name {
+    font: 400 var(--step-3) / 1.1 var(--font-display);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  /* A rule with a diamond at its centre. */
+  .ornament {
+    position: relative;
+    width: min(16rem, 60%);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-2) 20% 80%, transparent);
+  }
+
+  .ornament::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--void);
+    border: 1px solid var(--ash);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .blurb {
+    max-width: 34ch;
+    color: var(--ash);
+  }
+
+  /*
+   * Arrival (PLAN.md §3.2), once the page is shown: the name's letters draw in,
+   * the rule opens out from its diamond, then the line underneath. Input is
+   * never blocked, and reduced motion or the Motion switch skip it.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(:root[data-ready]:not([data-motion="off"])) .name {
+      animation: card-name var(--t-trail) var(--decel) both;
+    }
+
+    :global(:root[data-ready]:not([data-motion="off"])) .ornament {
+      animation: card-rule var(--t-spatial) var(--spring) 120ms both;
+    }
+
+    :global(:root[data-ready]:not([data-motion="off"])) .blurb {
+      animation: card-fade var(--t-effect) var(--standard) 280ms both;
+    }
+  }
+
+  @keyframes card-name {
+    from {
+      opacity: 0;
+      letter-spacing: 0.32em;
+    }
+  }
+
+  @keyframes card-rule {
+    from {
+      clip-path: inset(-1rem calc(50% - 0.45rem));
+    }
+    to {
+      clip-path: inset(-1rem 0);
+    }
+  }
+
+  @keyframes card-fade {
+    from {
+      opacity: 0;
+    }
+  }
+</style>

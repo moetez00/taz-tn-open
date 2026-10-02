@@ -1,0 +1,102 @@
+/*
+ * Layer surfaces (PLAN.md §3.2): the / search and ? keys dialogs. The world dims
+ * behind a dark veil, and a small panel with drawn corners rises into place: 300 ms
+ * decelerating in, 120 ms accelerating out. Nothing is blurred.
+ */
+.layer {
+  position: fixed;
+  max-height: min(80vh, 40rem);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--edge-lit);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgb(20 22 32 / 0.55), var(--panel) 40%), var(--void);
+  color: var(--soul);
+  box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 0.55);
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+  transition-property: opacity, scale, translate, overlay, display;
+  transition-duration: var(--t-exit);
+  transition-timing-function: var(--accel);
+  transition-behavior: allow-discrete;
+}
+
+.layer[open] {
+  transition-duration: var(--t-layer);
+  transition-timing-function: var(--decel);
+}
+
+.layer:not([open]) {
+  opacity: 0;
+  scale: 0.98;
+  translate: 0 12px;
+}
+
+@starting-style {
+  .layer[open] {
+    opacity: 0;
+    scale: 0.98;
+    translate: 0 12px;
+  }
+}
+
+/* The veil: the world darkens toward the edges, so the panel sits in a pool of light. */
+.layer::backdrop {
+  background: radial-gradient(ellipse at 50% 32%, rgb(7 7 10 / 0.5), rgb(7 7 10 / 0.9));
+  opacity: 0;
+  transition-property: opacity, overlay, display;
+  transition-duration: var(--t-exit);
+  transition-behavior: allow-discrete;
+}
+
+.layer[open]::backdrop {
+  opacity: 1;
+  transition-duration: var(--t-layer);
+}
+
+@starting-style {
+  .layer[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.layer .panel {
+  display: grid;
+  gap: 1rem;
+  max-height: inherit;
+  padding: 1.5rem 1.5rem 1.25rem;
+  overflow: auto;
+}
+
+/* Corners at two of the panel's edges: they draw themselves when it opens. */
+.layer .k {
+  position: absolute;
+  z-index: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  pointer-events: none;
+}
+
+.layer .k.tl {
+  top: 0;
+  left: 0;
+}
+
+.layer .k.br {
+  right: 0;
+  bottom: 0;
+  scale: -1 -1;
+}
+
+.layer[open] .k :is(.c-main, .c-echo, .c-vine, .c-thorn) {
+  animation: var(--a-draw) 600ms var(--sweep) 100ms both;
+}
+
+.layer[open] .k .c-bead {
+  animation: var(--a-fade) 400ms var(--standard) 500ms both;
+}
+
+.layer .hint {
+  color: var(--dust);
+}

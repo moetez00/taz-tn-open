@@ -1,0 +1,125 @@
+/* Entry body. Calm by rule: no motion here beyond link colour (PLAN.md §3). */
+.prose {
+  gap: 1.15rem;
+  line-height: 1.65;
+}
+
+.prose > * {
+  margin: 0;
+}
+
+.prose h2 {
+  margin-top: 1.4rem;
+  font-size: var(--step-2);
+  line-height: 1.25;
+}
+
+.prose h3 {
+  margin-top: 0.6rem;
+  font-size: var(--step-0);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.prose h4 {
+  font: 400 var(--step--1) / 1.35 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.prose :is(h2, h3, h4) {
+  scroll-margin-top: 1.5rem;
+}
+
+.prose :is(ul, ol) {
+  display: grid;
+  gap: 0.4rem;
+  padding-left: 1.4rem;
+}
+
+.prose ul {
+  list-style: none;
+}
+
+.prose ul > li {
+  position: relative;
+}
+
+.prose ul > li::before {
+  content: "–";
+  position: absolute;
+  left: -1.15rem;
+  color: var(--dust);
+}
+
+.prose ol > li::marker {
+  font: 400 var(--step--1) var(--font-mono);
+  color: var(--dust);
+}
+
+.prose li > :is(ul, ol) {
+  margin-top: 0.4rem;
+}
+
+.prose blockquote {
+  padding-left: 1.1rem;
+  border-left: 2px solid var(--line-2);
+  font-style: italic;
+  color: var(--ash);
+}
+
+.prose hr {
+  height: 1px;
+  border: 0;
+  background: var(--line);
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.prose :is(th, td) {
+  padding: 0.55rem 1rem 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: baseline;
+}
+
+.prose th {
+  font: 400 var(--step--2) / 1.3 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dust);
+}
+
+.prose img {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.prose :not(pre) > code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--raised);
+  font: 400 0.84em / 1.4 var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.prose .footnotes {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-size: var(--step--1);
+  color: var(--ash);
+}
+
+.prose .footnotes ol {
+  gap: 0.3rem;
+}

@@ -1,0 +1,397 @@
+/*
+ * The world around every page: the ornamental frame, the cursor instrument, the
+ * dust, and the small parts shared by the hero, the cards and the journal
+ * (chips, hex badges, panels). Animations use the --a-* variables from
+ * motion.css, so they are off wherever motion is.
+ */
+:root {
+  --inset: clamp(6px, 0.9vw, 12px);
+  --k: clamp(2.75rem, 6vw, 4.5rem);
+}
+
+/* The page sits above the dust and below the frame. */
+.page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: calc(var(--frame) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  padding-block-start: var(--inset);
+}
+
+.page > main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  padding-block: clamp(1.5rem, 4vw, 2.5rem) clamp(3rem, 8vw, 5rem);
+}
+
+.page > main:focus {
+  outline: none;
+}
+
+/* The frame: four thin lines and four corners, fixed to the window. */
+.world {
+  position: fixed;
+  inset: var(--inset);
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Text passing under the frame's top and bottom edges fades out before it reaches them. */
+.world::before,
+.world::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 1.5rem;
+}
+
+.world::before {
+  top: 0;
+  background: linear-gradient(var(--void), rgb(7 7 10 / 0));
+}
+
+.world::after {
+  bottom: 0;
+  background: linear-gradient(0deg, var(--void), rgb(7 7 10 / 0));
+}
+
+.side {
+  position: absolute;
+  z-index: 1;
+}
+
+.side.t,
+.side.b {
+  inset-inline: 0;
+  height: 1px;
+}
+
+.side.t { top: 0; }
+.side.b { bottom: 0; }
+
+.side.l,
+.side.r {
+  inset-block: 0;
+  width: 1px;
+}
+
+.side.l { left: 0; }
+.side.r { right: 0; }
+
+.side::before,
+.side::after {
+  content: "";
+  position: absolute;
+  background: var(--edge);
+}
+
+.side.t::before,
+.side.b::before { inset: 0 50% 0 0; transform-origin: left; }
+.side.t::after,
+.side.b::after { inset: 0 0 0 50%; transform-origin: right; }
+.side.l::before,
+.side.r::before { inset: 0 0 50% 0; transform-origin: top; }
+.side.l::after,
+.side.r::after { inset: 50% 0 0 0; transform-origin: bottom; }
+
+.world .corner {
+  position: absolute;
+  z-index: 2;
+  width: var(--k);
+  height: var(--k);
+}
+
+.world .tl { top: 0; left: 0; }
+.world .tr { top: 0; right: 0; scale: -1 1; }
+.world .bl { bottom: 0; left: 0; scale: 1 -1; }
+.world .br { bottom: 0; right: 0; scale: -1 -1; }
+
+.world > .pendant {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--k) + 0.75rem);
+  right: 1.25rem;
+}
+
+@media (max-width: 75rem) {
+  .world > .pendant {
+    display: none;
+  }
+}
+
+/* Awakening: the frame grows out of its corners, then the corners draw themselves. */
+:root[data-first] .side.t::before,
+:root[data-first] .side.t::after,
+:root[data-first] .side.b::before,
+:root[data-first] .side.b::after {
+  animation: var(--a-grow-x) 620ms var(--sweep) both;
+}
+
+:root[data-first] .side.l::before,
+:root[data-first] .side.l::after,
+:root[data-first] .side.r::before,
+:root[data-first] .side.r::after {
+  animation: var(--a-grow-y) 620ms var(--sweep) both;
+}
+
+:root[data-first] .world .corner :is(.c-main, .c-echo, .c-vine, .c-thorn) {
+  animation: var(--a-draw) 700ms var(--sweep) 180ms both;
+}
+
+:root[data-first] .world .corner .c-bead {
+  animation: var(--a-fade) 500ms var(--standard) 650ms both;
+}
+
+/* Atmosphere: a few motes drift up and fade, on every page, and thin out toward the footer. */
+.motes > i {
+  position: absolute;
+  left: var(--l);
+  top: var(--tp);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--glow), rgb(201 211 230 / 0) 70%);
+  opacity: 0;
+  animation: var(--a-mote) calc(var(--t-mote) * var(--f)) linear calc(var(--n) * -2.7s) infinite;
+}
+
+.motes > i:nth-child(1) { --l: 7%; --tp: 62%; --dx: 16px; --o: 0.5; --f: 1; --n: 1; }
+.motes > i:nth-child(2) { --l: 19%; --tp: 30%; --dx: -10px; --o: 0.35; --f: 1.3; --n: 2; }
+.motes > i:nth-child(3) { --l: 31%; --tp: 80%; --dx: 22px; --o: 0.55; --f: 0.9; --n: 3; }
+.motes > i:nth-child(4) { --l: 44%; --tp: 44%; --dx: -18px; --o: 0.3; --f: 1.5; --n: 4; }
+.motes > i:nth-child(5) { --l: 58%; --tp: 70%; --dx: 12px; --o: 0.45; --f: 1.1; --n: 5; }
+.motes > i:nth-child(6) { --l: 66%; --tp: 22%; --dx: -14px; --o: 0.4; --f: 1.4; --n: 6; }
+.motes > i:nth-child(7) { --l: 78%; --tp: 56%; --dx: 20px; --o: 0.5; --f: 0.8; --n: 7; }
+.motes > i:nth-child(8) { --l: 88%; --tp: 86%; --dx: -12px; --o: 0.35; --f: 1.2; --n: 8; }
+.motes > i:nth-child(9) { --l: 94%; --tp: 38%; --dx: 10px; --o: 0.45; --f: 1; --n: 9; }
+.motes > i:nth-child(10) { --l: 25%; --tp: 58%; --dx: -20px; --o: 0.4; --f: 1.6; --n: 10; }
+.motes > i:nth-child(11) { --l: 52%; --tp: 90%; --dx: 14px; --o: 0.5; --f: 0.85; --n: 11; }
+.motes > i:nth-child(12) { --l: 72%; --tp: 34%; --dx: -8px; --o: 0.3; --f: 1.25; --n: 12; }
+
+.dust {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Only the first nine motes drift across the page. */
+.dust > i:nth-child(n + 10) {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .dust {
+    animation: var(--a-quiet) linear both;
+  }
+
+  /* Its own, more specific rule: minifiers fold animation-timeline into the shorthand. */
+  div.dust {
+    animation-timeline: scroll(root block);
+    animation-range: 60% 100%;
+  }
+}
+
+/* The cursor: a point, a ring that follows a beat behind, and a word for what is under it. */
+.cursor {
+  display: none;
+}
+
+:root[data-cursor] .cursor {
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+:root[data-cursor]:not(:has(dialog[open])) * {
+  cursor: none !important;
+}
+
+:root[data-cursor]:has(dialog[open]) .cursor {
+  display: none;
+}
+
+.cursor .dot {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--soul);
+  transition: scale var(--t-micro) var(--spring-soft);
+}
+
+.cursor .follow {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.cursor .ring {
+  position: absolute;
+  left: -17px;
+  top: -17px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--soul);
+  border-radius: 50%;
+  opacity: 0;
+  scale: 0.35;
+  transition:
+    opacity var(--t-micro) var(--standard),
+    scale var(--t-micro) var(--spring-soft);
+}
+
+.cursor .tag {
+  position: absolute;
+  left: 26px;
+  top: -11px;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid var(--edge-lit);
+  border-radius: var(--radius);
+  background: rgb(7 7 10 / 0.82);
+  color: var(--soul);
+  font: 400 0.6875rem / 1.4 var(--font-mono);
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+  opacity: 0;
+  translate: -6px 0;
+  transition:
+    opacity var(--t-micro) var(--standard),
+    translate var(--t-micro) var(--decel);
+}
+
+.cursor[data-mode="link"] .ring,
+.cursor[data-mode="button"] .ring {
+  opacity: 0.5;
+  scale: 1;
+}
+
+.cursor:is([data-mode="view"], [data-mode="read"], [data-mode="out"], [data-mode="explore"]) .ring {
+  opacity: 0.75;
+  scale: 1.15;
+}
+
+.cursor:is([data-mode="view"], [data-mode="read"], [data-mode="out"], [data-mode="explore"]) .tag {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.cursor[data-mode="text"] .dot {
+  scale: 0.4 4;
+}
+
+.cursor[data-down] .ring {
+  scale: 0.8;
+}
+
+/* Small parts shared by the hero, the cards and the journal. */
+.chip {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--panel);
+  font: 400 var(--step--1) / 1.5 var(--font-mono);
+  color: var(--ash);
+  text-decoration: none;
+  transition:
+    color var(--t-micro) var(--standard),
+    border-color var(--t-micro) var(--standard);
+}
+
+.panel {
+  position: relative;
+  border: 1px solid var(--edge);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgb(20 22 32 / 0.6), var(--panel));
+}
+
+/* Small ornate corners for a panel, the frame's own corner drawn smaller. */
+.panel > svg.pc {
+  position: absolute;
+  width: 1.9rem;
+  height: 1.9rem;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.panel > svg.pc.tl { top: -1px; left: -1px; }
+.panel > svg.pc.tr { top: -1px; right: -1px; scale: -1 1; }
+.panel > svg.pc.bl { bottom: -1px; left: -1px; scale: 1 -1; }
+.panel > svg.pc.br { bottom: -1px; right: -1px; scale: -1 -1; }
+
+.panel .pc :is(.c-main, .c-echo, .c-vine, .c-thorn) {
+  stroke-width: 3;
+}
+
+.panel-title {
+  font: 400 var(--step--1) / 1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  color: var(--dust);
+}
+
+/* A rounded hexagon holding a glyph, used for tags, project icons and the footer mark. */
+.hex {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  color: var(--ash);
+  transition:
+    color var(--t-micro) var(--standard),
+    rotate var(--t-micro) var(--spring-soft);
+}
+
+.hex .hex-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--panel);
+  stroke: var(--edge-lit);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  transition: stroke var(--t-micro) var(--standard);
+}
+
+.hex .glyph {
+  position: relative;
+  width: 55%;
+  height: 55%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motes {
+    display: none;
+  }
+}
+
+:root[data-motion="off"] .motes {
+  display: none;
+}
+
+/* Touch has no hover, so it has no cursor. */
+@media (hover: none), (pointer: coarse) {
+  .cursor {
+    display: none !important;
+  }
+}

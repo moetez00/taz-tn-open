@@ -1,0 +1,120 @@
+---
+import { Code } from "astro:components";
+import Base from "../layouts/Base.astro";
+import "../styles/prose.css";
+import "../styles/code.css";
+import { tazTheme, tokenClasses } from "../lib/code-theme.mjs";
+import { PALETTE, base16, hyprland, kitty, niri } from "../lib/theme-export";
+
+// Shiki labels a block with its language; these read better labelled with the file they go in.
+const file = (name: string) => ({
+  name: "taz:file-label",
+  pre(node: { properties: Record<string, unknown> }) {
+    node.properties.dataLanguage = name;
+  },
+});
+const USE: Record<string, string> = {
+  void: "background",
+  raised: "raised surfaces",
+  line: "rules",
+  "line-2": "underlines, the scrollbar",
+  soul: "text",
+  ash: "secondary text",
+  dust: "meta text",
+  "cloak-deep": "the ribbon, fills",
+  cloak: "accent text, focus",
+};
+const snippets = [
+  { id: "base16", title: "base16", file: "taz.yaml", lang: "yaml", code: base16, note: "In tinted-theming’s scheme format, so its builder can render it for most terminals and editors." },
+  { id: "kitty", title: "kitty", file: "kitty.conf", lang: "plaintext", code: kitty, note: "The cursor and the focused window’s border take the accent amber, as focus does here." },
+  { id: "hyprland", title: "Hyprland", file: "hyprland.lua", lang: "lua", code: hyprland, note: "The site’s spring and curves as Hyprland curves: windows move on the same critically damped spring, and close faster than they open." },
+  { id: "niri", title: "niri", file: "config.kdl", lang: "kdl", code: niri, note: "niri’s own springs are already critically damped; these use the site’s stiffness and curves." },
+] as const;
+---
+
+<Base
+  title="Theme · Taz"
+  description="This site's palette and motion as a base16 scheme and configs for kitty, Hyprland and niri."
+>
+  <header class="section">
+    <h1 class="page-title">Theme</h1>
+    <p class="status">
+      This site’s palette and motion, for your terminal and compositor. Every value is read from the site’s own tokens
+      when it is built, so these stay in step with what you see here.
+    </p>
+  </header>
+
+  <section class="section" aria-labelledby="palette-heading">
+    <h2 id="palette-heading" class="area-rule">Palette</h2>
+    <ul class="swatches">
+      {
+        PALETTE.map(({ name, hex }) => (
+          <li>
+            <span class={`chip sw-${name}`} aria-hidden="true" />
+            <span class="name">{name}</span>
+            <span class="meta">{hex}</span>
+            <span class="use">{USE[name]}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <div class="prose">
+    {
+      snippets.map((snippet) => (
+        <section aria-labelledby={`${snippet.id}-heading`}>
+          <h2 id={`${snippet.id}-heading`}>{snippet.title}</h2>
+          <p>{snippet.note}</p>
+          <Code code={snippet.code} lang={snippet.lang} theme={tazTheme} transformers={[tokenClasses(), file(snippet.file)]} />
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<script>
+  import "../scripts/copy";
+</script>
+
+<style>
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: 1.25rem 1.5rem;
+    list-style: none;
+  }
+
+  .swatches li {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .chip {
+    height: 3rem;
+    margin-bottom: 0.35rem;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+  }
+
+  .use {
+    font-size: var(--step--1);
+    color: var(--ash);
+  }
+
+  .sw-void { background: var(--void); }
+  .sw-raised { background: var(--raised); }
+  .sw-line { background: var(--line); }
+  .sw-line-2 { background: var(--line-2); }
+  .sw-soul { background: var(--soul); }
+  .sw-ash { background: var(--ash); }
+  .sw-dust { background: var(--dust); }
+  .sw-cloak-deep { background: var(--cloak-deep); }
+  .sw-cloak { background: var(--cloak); }
+
+  .prose section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.15rem;
+  }
+</style>

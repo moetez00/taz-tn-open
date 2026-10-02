@@ -1,0 +1,95 @@
+---
+interface Props {
+  flag: string;
+}
+
+const { flag } = Astro.props;
+---
+
+<details class="dream-nail">
+  <summary>
+    <span class="name">Dream Nail</span>
+    <span class="hint meta">
+      <span class="closed">reveal the flag</span><span class="open">the flag</span>
+    </span>
+  </summary>
+  <div class="thought">
+    <code>{flag}</code>
+  </div>
+</details>
+
+<style>
+  .dream-nail {
+    max-width: var(--measure);
+    border-block: 1px solid var(--line);
+  }
+
+  summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.9rem;
+    padding-block: 0.9rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* A hollow diamond that fills when the flag is open. */
+  summary::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border: 1px solid var(--ash);
+    transform: rotate(45deg);
+    transition: background-color var(--t-effect) var(--standard);
+  }
+
+  .dream-nail[open] summary::before {
+    background: var(--soul);
+    border-color: var(--soul);
+  }
+
+  .name {
+    font: 400 var(--step--1) / 1.2 var(--font-display);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--soul);
+  }
+
+  .open,
+  .dream-nail[open] .closed {
+    display: none;
+  }
+
+  .dream-nail[open] .open {
+    display: inline;
+  }
+
+  /* The thought blooms in: opacity and a 3 px blur, 200 ms decelerating (PLAN.md §3.2). */
+  /* Indented to line up with the name, past the diamond. */
+  .thought {
+    padding: 0 0 1.1rem 1.4rem;
+    opacity: 1;
+    filter: none;
+    transition:
+      opacity var(--t-bloom) var(--decel),
+      filter var(--t-bloom) var(--decel);
+  }
+
+  @starting-style {
+    .dream-nail[open] .thought {
+      opacity: 0;
+      filter: blur(3px);
+    }
+  }
+
+  code {
+    font: 400 var(--step--1) / 1.5 var(--font-mono);
+    color: var(--soul);
+    overflow-wrap: anywhere;
+  }
+</style>

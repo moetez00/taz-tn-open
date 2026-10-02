@@ -1,0 +1,63 @@
+---
+// One corner of an ornamental frame, drawn for the top left and mirrored by CSS
+// for the others. Strokes use pathLength="1", so motion.css can draw them in.
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+---
+
+<svg class:list={["corner", className]} viewBox="-2 -2 90 90" aria-hidden="true" focusable="false">
+  <path class="c-main" pathLength="1" d="M0 54V13Q0 0 13 0h41"></path>
+  <path class="c-echo" pathLength="1" d="M6 34V19Q6 6 19 6h15"></path>
+  <path
+    class="c-vine"
+    pathLength="1"
+    d="M13 0c5 8-2 15 5 21s15 0 12-6c-2-4-7-2-6 2M0 13c8 5 15-2 21 5 4 5 2 11-3 12"
+  ></path>
+  <path class="c-thorn" pathLength="1" d="M27 0q3 4 8 4M42 0q2 3 6 3M0 27q4 3 4 8M0 42q3 2 3 6"></path>
+  <path class="c-bead" d="M6 2.5 9.5 6 6 9.5 2.5 6Z"></path>
+  <circle class="c-bead" cx="54" cy="0" r="1.7"></circle>
+  <circle class="c-bead" cx="0" cy="54" r="1.7"></circle>
+</svg>
+
+<style>
+  .corner {
+    display: block;
+    width: 5.375rem;
+    height: 5.375rem;
+    overflow: visible;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* pathLength is 1, so one dash is the whole stroke and `draw` (motion.css) can uncover it. */
+  .c-main,
+  .c-echo,
+  .c-vine,
+  .c-thorn {
+    stroke-dasharray: 1;
+  }
+
+  .c-main {
+    stroke: var(--edge-lit);
+    stroke-width: 1.1;
+  }
+
+  .c-echo,
+  .c-thorn {
+    stroke: var(--edge);
+    stroke-width: 1;
+  }
+
+  .c-vine {
+    stroke: var(--line-2);
+    stroke-width: 0.9;
+  }
+
+  .c-bead {
+    fill: var(--edge-lit);
+    stroke: none;
+  }
+</style>

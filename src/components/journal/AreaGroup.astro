@@ -1,0 +1,32 @@
+---
+import EntryRow from "./EntryRow.astro";
+import { areaUrl, type Area, type Entry, type Event } from "../../lib/journal";
+
+interface Props {
+  area: Area;
+  entries: Entry[];
+  events: Map<string, Event>;
+  level?: 2 | 3;
+}
+
+const { area, entries, events, level = 2 } = Astro.props;
+const Heading = `h${level}` as "h2" | "h3";
+const id = `area-${area.id}`;
+---
+
+<section class="section" aria-labelledby={id}>
+  <Heading id={id} class="area-rule"><a href={areaUrl(area.id)}>{area.data.name}</a></Heading>
+  <ul class="rows">
+    {entries.map((entry) => <EntryRow entry={entry} event={entry.data.event && events.get(entry.data.event.id)} />)}
+  </ul>
+</section>
+
+<style>
+  .area-rule a {
+    text-decoration: none;
+  }
+
+  .area-rule a:hover {
+    color: var(--cloak);
+  }
+</style>

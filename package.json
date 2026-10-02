@@ -1,0 +1,37 @@
+{
+  "name": "taz.tn",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "serve": "node scripts/serve.mjs",
+    "gate:inline": "node scripts/check-inline.mjs",
+    "gate:contrast": "node scripts/check-contrast.mjs",
+    "gate:budget": "node scripts/check-budget.mjs",
+    "gate:headers": "node scripts/check-headers.mjs",
+    "gates": "npm run gate:inline && npm run gate:contrast && npm run gate:budget && npm run gate:headers",
+    "test:unit": "node --test \"tests/unit/*.test.mjs\"",
+    "test:e2e": "playwright test",
+    "lhci": "lhci autorun",
+    "verify": "npm run check && npm run test:unit && npm run build && npm run gates && npm run test:e2e",
+    "import": "node scripts/import-entry.mjs",
+    "import:all": "node scripts/import-all.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.4",
+    "typescript": "6.0.3"
+  }
+}

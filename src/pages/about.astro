@@ -1,0 +1,159 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { site } from "../data/site";
+import KeyMap from "../components/overlays/KeyMap.astro";
+
+const events = (await getCollection("events")).sort((a, b) => a.data.order - b.data.order);
+const results = events.filter((event) => event.data.role === "player" && event.data.result);
+const authored = events.filter((event) => event.data.role === "author");
+const SUFFIX: Record<number, string> = { 1: "st", 2: "nd", 3: "rd" };
+const ordinal = (n: number) => `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (SUFFIX[n % 10] ?? "th")}`;
+
+// From the CV.
+const roles = [
+  ["Securinets INSAT", "Technical team: pwn challenge author and workshop instructor", "Since Sep 2024"],
+  ["TPLUS Innovation", "Internship: a repair-shop finder web app", "Aug 2026"],
+  ["IEEE Computer Society, INSAT", "Backend; logistics for AINS 4.0 and Xtreme", ""],
+  ["INSAT", "Software engineering", "Expected Jun 2029"],
+];
+---
+
+<Base
+  title="About · Taz"
+  description="Moetez Zouari (Taz): software engineering student at INSAT, pwn challenge author at Securinets INSAT."
+  current="about"
+>
+  <header class="section">
+    <h1 class="page-title">About</h1>
+  </header>
+
+  <div class="prose">
+    <p>
+      I’m Moetez Zouari, Taz online. I’m a third-year software engineering student at INSAT in
+      Tunis.
+    </p>
+    <p>
+      On the Securinets INSAT technical team I write pwn challenges for the club’s CTFs, more than
+      twenty so far, and I run binary-exploitation workshops. I also build web apps end to end,
+      from the club platform INSAT Pulse to revision sites used by 117 classmates.
+    </p>
+    <p>
+      Email: <a href={`mailto:${site.email}`}>{site.email}</a>
+    </p>
+  </div>
+
+  <section class="section" aria-labelledby="roles-heading">
+    <h2 id="roles-heading" class="area-rule">Roles</h2>
+    <ul class="rows roles">
+      {
+        roles.map(([place, what, when]) => (
+          <li>
+            <span>
+              <span class="row-title">{place}</span>
+              <span class="what">{what}</span>
+            </span>
+            <span class="meta">{when}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="results-heading">
+    <h2 id="results-heading" class="area-rule">Results</h2>
+    <table class="results">
+      <caption class="visually-hidden">CTF podium finishes</caption>
+      <thead class="visually-hidden">
+        <tr>
+          <th scope="col">Place</th>
+          <th scope="col">Event</th>
+          <th scope="col">Year</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          results.map(({ data }) => (
+            <tr>
+              <td class="place">{ordinal(data.result!.rank)}</td>
+              <td>
+                {data.name}
+                {(data.organizer || data.result?.of) && (
+                  <span class="meta">
+                    {" · "}
+                    {[data.organizer, data.result?.of && `${data.result.of} teams`].filter(Boolean).join(", ")}
+                  </span>
+                )}
+              </td>
+              <td class="meta year">{data.year}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <p class="status">Also: top 3% on Hackviser.</p>
+  </section>
+
+  <section class="section" aria-labelledby="authored-heading">
+    <h2 id="authored-heading" class="area-rule">Challenges authored for</h2>
+    <ul class="rows">
+      {
+        authored.map(({ data }) => (
+          <li>
+            <span class="row-title">{data.name}</span>
+            <span class="meta">
+              {[data.organizer, data.note, !data.name.includes(String(data.year)) && data.year].filter(Boolean).join(" · ")}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="status">The writeups are in the <a href="/journal/">Journal</a>.</p>
+  </section>
+
+  <section class="section keys" id="keys" aria-labelledby="keys-heading">
+    <h2 id="keys-heading" class="area-rule">Keys</h2>
+    <p class="status">The site can be driven from the keyboard. Keys do nothing while you type in a field.</p>
+    <KeyMap />
+  </section>
+</Base>
+
+<style>
+  .roles .what {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 1rem;
+    color: var(--ash);
+  }
+
+  .results {
+    width: 100%;
+    max-width: var(--measure);
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .results td {
+    padding-block: 0.65rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+
+  .results tbody tr:first-child td {
+    border-top: 1px solid var(--line);
+  }
+
+  .place {
+    width: 3.5rem;
+    font: 400 var(--step--1) / 1 var(--font-mono);
+    color: var(--cloak);
+  }
+
+  .year {
+    text-align: end;
+  }
+
+  .keys {
+    max-width: var(--measure);
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+import { entryUrl, type Area, type Entry } from "../../lib/journal";
+
+interface Props {
+  area: Area;
+  prev?: Entry;
+  next?: Entry;
+}
+
+const { area, prev, next } = Astro.props;
+---
+
+{
+  (prev || next) && (
+    <nav class="series-nav" aria-label={`More in ${area.data.name}`}>
+      {prev && (
+        <a class="prev" href={entryUrl(prev)} rel="prev">
+          <span class="meta">← Previous</span>
+          <span class="title">{prev.data.title}</span>
+        </a>
+      )}
+      {next && (
+        <a class="next" href={entryUrl(next)} rel="next">
+          <span class="meta">Next →</span>
+          <span class="title">{next.data.title}</span>
+        </a>
+      )}
+    </nav>
+  )
+}
+
+<style>
+  .series-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 2rem;
+    max-width: var(--measure);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  a {
+    display: grid;
+    gap: 0.25rem;
+    text-decoration: none;
+  }
+
+  .next {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  .title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--line-2);
+    text-underline-offset: 0.22em;
+  }
+
+  a:hover .title {
+    text-decoration-color: currentColor;
+  }
+
+  @media (max-width: 40rem) {
+    .series-nav {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .next {
+      grid-column: 1;
+      text-align: left;
+    }
+  }
+</style>

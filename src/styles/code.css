@@ -1,0 +1,78 @@
+/*
+ * Code blocks. Shiki's colours arrive as classes (src/lib/code-theme.mjs);
+ * the values live in tokens.css, where the contrast gate checks them.
+ */
+.prose pre.astro-code {
+  margin: 0;
+  padding: 0 1.25rem 1.1rem;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--raised);
+  color: var(--code-text);
+  font: 400 0.875rem / 1.65 var(--font-mono);
+  tab-size: 4;
+}
+
+.prose pre.astro-code code {
+  font: inherit;
+}
+
+/* The language, top left. Sticky, so it stays put while the block scrolls sideways. */
+.prose pre.astro-code::before {
+  content: attr(data-language);
+  position: sticky;
+  left: 0;
+  display: block;
+  padding-block: 0.65rem 0.45rem;
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  color: var(--dust);
+}
+
+.tk-strong {
+  color: var(--code-strong);
+}
+
+.tk-literal {
+  color: var(--code-literal);
+}
+
+.tk-comment {
+  color: var(--code-comment);
+}
+
+.tk-punct,
+.tk-mark {
+  color: var(--code-punct);
+}
+
+.tk-mark {
+  user-select: none;
+}
+
+/* src/scripts/copy.ts wraps each block and adds the button. Without JS there is no button. */
+.code-block {
+  position: relative;
+}
+
+.code-block .copy {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.45rem;
+  padding: 0.28rem 0.5rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--raised);
+  color: var(--ash);
+  font: 400 var(--step--2) / 1 var(--font-mono);
+  cursor: pointer;
+  transition:
+    color var(--t-effect) var(--standard),
+    border-color var(--t-effect) var(--standard);
+}
+
+.code-block .copy:hover {
+  border-color: var(--ash);
+  color: var(--soul);
+}

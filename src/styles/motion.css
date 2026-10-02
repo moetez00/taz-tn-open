@@ -1,0 +1,462 @@
+/*
+ * The motion layer (PLAN.md §3). Three levels, from the tokens: micro (hover, focus),
+ * UI (pages, layers, inspection) and atmosphere (art, light, dust).
+ *
+ * Every animation is written as `animation: var(--a-name) <duration> ...`. The
+ * variables below are `none` unless the page is shown (not just prerendered), the
+ * system allows motion and the footer's Motion switch is on, so reduced motion has
+ * one gate, here, instead of one per component. Transitions (hover, focus) use the
+ * --t-* tokens instead, which go to zero in the same situations.
+ *
+ * Pages change through cross-document view transitions; src/scripts/boot.js types
+ * each one as open, close, next or prev.
+ */
+:root {
+  --a-rise: none;
+  --a-settle: none;
+  --a-lift: none;
+  --a-fade: none;
+  --a-draw: none;
+  --a-grow-x: none;
+  --a-grow-y: none;
+  --a-veil-l: none;
+  --a-veil-r: none;
+  --a-lit: none;
+  --a-hop: none;
+  --a-bar: none;
+  --a-breathe: none;
+  --a-drift: none;
+  --a-mote: none;
+  --a-float: none;
+  --a-light: none;
+  --a-depth: none;
+  --a-quiet: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  :root[data-ready]:not([data-motion="off"]) {
+    --a-rise: rise;
+    --a-settle: settle;
+    --a-lift: lift;
+    --a-fade: fade;
+    --a-draw: draw;
+    --a-grow-x: grow-x;
+    --a-grow-y: grow-y;
+    --a-veil-l: veil-l;
+    --a-veil-r: veil-r;
+    --a-lit: lit;
+    --a-hop: hop;
+    --a-bar: bar;
+    --a-breathe: breathe;
+    --a-drift: drift;
+    --a-mote: mote;
+    --a-float: float;
+    --a-light: light;
+    --a-depth: depth;
+    --a-quiet: quiet;
+  }
+}
+
+:root[data-motion="off"] {
+  --t-effect: 0ms;
+  --t-micro: 0ms;
+  --t-exit: 0ms;
+  --t-back: 0ms;
+  --t-bloom: 0ms;
+  --t-layer: 0ms;
+  --t-spatial: 0ms;
+  --t-trail: 0ms;
+  --t-page: 0ms;
+}
+
+/*
+ * Entrance timing. Every entrance is `delay = base + n * step`, with n from the
+ * .i1-.i9 classes. On the first page of a visit it stretches into the awakening:
+ * frame, header, title, details, then the art, slowly.
+ */
+:root {
+  --base: 0ms;
+  --step: 55ms;
+}
+
+:root[data-first] {
+  --base: 260ms;
+  --step: 120ms;
+}
+
+.i1 { --i: 1; }
+.i2 { --i: 2; }
+.i3 { --i: 3; }
+.i4 { --i: 4; }
+.i5 { --i: 5; }
+.i6 { --i: 6; }
+.i7 { --i: 7; }
+.i8 { --i: 8; }
+.i9 { --i: 9; }
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: 0 var(--rise, 12px);
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+/* Position only, for text that must stay at full contrast while it moves. */
+@keyframes lift {
+  from {
+    translate: 0 var(--rise, 10px);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+@keyframes grow-x {
+  from {
+    scale: 0 1;
+  }
+}
+
+@keyframes grow-y {
+  from {
+    scale: 1 0;
+  }
+}
+
+@keyframes bar {
+  from {
+    scale: 0 1;
+  }
+}
+
+/* A block lights up, then settles back to its own colour. */
+@keyframes lit {
+  35% {
+    background-color: var(--edge);
+    border-color: var(--glow);
+    color: var(--soul);
+  }
+}
+
+@keyframes hop {
+  50% {
+    translate: 0 -3px;
+  }
+}
+
+/* The caret breathes unevenly, never off, so it doesn't read as a terminal cursor. */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  34% {
+    opacity: 0.3;
+  }
+  41% {
+    opacity: 0.85;
+  }
+  63% {
+    opacity: 0.2;
+  }
+  77% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-7px, 0, 0) scale(1.03);
+  }
+  to {
+    transform: translate3d(7px, -4px, 0) scale(1.03);
+  }
+}
+
+@keyframes mote {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+  18%,
+  70% {
+    opacity: var(--o, 0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--dx, 14px), -70px, 0);
+  }
+}
+
+/* Shards of light hang in the hero's air, rising and sinking without going anywhere. */
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 0.3;
+  }
+  50% {
+    translate: var(--fx, 8px) -16px;
+    opacity: 0.85;
+  }
+}
+
+/* A soft light passing through the cave, once in a long while. */
+@keyframes light {
+  0%,
+  55% {
+    opacity: 0;
+    translate: -40% 0;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    translate: 40% 0;
+  }
+}
+
+/* The layers beyond the hero move less than the page as it scrolls away. */
+@keyframes depth {
+  to {
+    transform: translate3d(0, var(--dy, 24px), 0);
+  }
+}
+
+@keyframes quiet {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes veil-l {
+  to {
+    translate: -100% 0;
+  }
+}
+
+@keyframes veil-r {
+  to {
+    translate: 100% 0;
+  }
+}
+
+/*
+ * The veil: a dark curtain that has just crossed the screen on the page that
+ * arrives. Moving to a later section it leaves to the left, to an earlier one
+ * to the right, so the new content emerges from the side it lies on.
+ */
+.veil {
+  display: none;
+}
+
+:root[data-nav="next"] .veil,
+:root[data-nav="prev"] .veil {
+  display: block;
+  position: fixed;
+  inset-block: 0;
+  z-index: 40;
+  width: 160vw;
+  pointer-events: none;
+  animation-duration: var(--t-page);
+  animation-timing-function: var(--sweep);
+  animation-fill-mode: both;
+}
+
+:root[data-nav="next"] .veil {
+  left: 0;
+  background: linear-gradient(90deg, var(--void) 0 60%, var(--panel) 62.5%, rgb(7 7 10 / 0));
+  animation-name: var(--a-veil-l);
+}
+
+:root[data-nav="prev"] .veil {
+  right: 0;
+  background: linear-gradient(270deg, var(--void) 0 60%, var(--panel) 62.5%, rgb(7 7 10 / 0));
+  animation-name: var(--a-veil-r);
+}
+
+/* The shell holds still while the workspace changes. */
+.masthead {
+  view-transition-name: masthead;
+}
+
+main {
+  view-transition-name: main;
+}
+
+.footer {
+  view-transition-name: footer;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--t-spatial);
+  animation-timing-function: var(--spring);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t-effect);
+}
+
+::view-transition-old(main) {
+  animation: vt-fade-out var(--t-effect) var(--standard) both;
+}
+
+::view-transition-new(main) {
+  animation: vt-fade-in var(--t-effect) var(--standard) both;
+}
+
+/* Opening: a row's title, or a project's card, becomes the page it opens. */
+html:active-view-transition-type(open)::view-transition-new(main) {
+  animation:
+    vt-fade-in var(--t-effect) var(--standard) both,
+    vt-rise var(--t-spatial) var(--spring) both;
+}
+
+html:active-view-transition-type(open)::view-transition-group(*.card) {
+  animation-duration: var(--t-page);
+}
+
+/*
+ * The title itself: a quick cross-fade inside a slower move, so the row's text and
+ * the heading's text never sit side by side. Both boxes hug their text (the entry
+ * heading is fit-content), so the two images line up while they scale.
+ */
+::view-transition-old(*.entry-title) {
+  animation: vt-fade-out var(--t-effect) var(--standard) both;
+}
+
+::view-transition-new(*.entry-title) {
+  animation: vt-fade-in var(--t-effect) var(--standard) both;
+}
+
+/* The card is a box and the sheet is a bigger box: swap their faces early, so neither is stretched for long. */
+::view-transition-old(*.card) {
+  animation: vt-fade-out var(--t-micro) var(--standard) both;
+}
+
+::view-transition-new(*.card) {
+  animation: vt-fade-in var(--t-micro) var(--standard) both;
+}
+
+/* Closing: faster out than in. */
+html:active-view-transition-type(close)::view-transition-group(*) {
+  animation-duration: var(--t-back);
+  animation-timing-function: var(--accel);
+}
+
+html:active-view-transition-type(close)::view-transition-old(main) {
+  animation: vt-fade-out var(--t-back) var(--accel) both;
+}
+
+html:active-view-transition-type(close)::view-transition-new(main) {
+  animation: vt-fade-in var(--t-back) var(--standard) both;
+}
+
+/* Another section: the content slides 24 px in nav order, under the veil. */
+html:active-view-transition-type(next)::view-transition-old(main) {
+  animation:
+    vt-fade-out var(--t-effect) var(--standard) both,
+    vt-to-left var(--t-spatial) var(--spring) both;
+}
+
+html:active-view-transition-type(next)::view-transition-new(main) {
+  animation:
+    vt-fade-in var(--t-effect) var(--standard) both,
+    vt-from-right var(--t-spatial) var(--spring) both;
+}
+
+html:active-view-transition-type(prev)::view-transition-old(main) {
+  animation:
+    vt-fade-out var(--t-effect) var(--standard) both,
+    vt-to-right var(--t-spatial) var(--spring) both;
+}
+
+html:active-view-transition-type(prev)::view-transition-new(main) {
+  animation:
+    vt-fade-in var(--t-effect) var(--standard) both,
+    vt-from-left var(--t-spatial) var(--spring) both;
+}
+
+/*
+ * The nav underline travels from one link to the next and overshoots by 4% before it
+ * settles; its trail follows at 1.5x the time, so it stretches on the way, and the
+ * diamond rides along at the underline's pace.
+ */
+::view-transition-group(nav-indicator),
+::view-transition-group(nav-gem) {
+  animation-duration: var(--t-page);
+  animation-timing-function: var(--spring-soft);
+}
+
+::view-transition-group(nav-trail) {
+  animation-duration: calc(var(--t-page) * 1.5);
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    translate: 0 8px;
+  }
+}
+
+@keyframes vt-from-right {
+  from {
+    translate: 24px 0;
+  }
+}
+
+@keyframes vt-from-left {
+  from {
+    translate: -24px 0;
+  }
+}
+
+@keyframes vt-to-left {
+  to {
+    translate: -24px 0;
+  }
+}
+
+@keyframes vt-to-right {
+  to {
+    translate: 24px 0;
+  }
+}
+
+/* Entrance: any element with .enter and an .i1-.i9 class rises into place in order. */
+.enter {
+  animation: var(--a-rise) var(--t-page) var(--decel) calc(var(--base) + var(--i, 0) * var(--step)) both;
+}

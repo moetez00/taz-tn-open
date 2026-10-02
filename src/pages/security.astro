@@ -1,0 +1,65 @@
+---
+import Base from "../layouts/Base.astro";
+import { site } from "../data/site";
+---
+
+<Base
+  title="Security · Taz"
+  description="How to report a security problem on taz.tn or one of its subdomains."
+>
+  <header class="section">
+    <h1 class="page-title">Security</h1>
+    <p class="status">How to report a security problem on this site or one of its subdomains.</p>
+  </header>
+
+  <div class="prose policy">
+    <h2>Reporting</h2>
+    <p>
+      Email <a href={`mailto:${site.securityEmail}`}>{site.securityEmail}</a> with what you found, where, and the steps
+      to reproduce it. I read every report myself and reply within a week.
+    </p>
+    <p>
+      There is no PGP key yet. If a report needs encryption, send a short note first and we’ll agree on a channel.
+    </p>
+
+    <h2>Scope</h2>
+    <ul>
+      <li><code>taz.tn</code> and its subdomains.</li>
+    </ul>
+    <p>Out of scope:</p>
+    <ul>
+      <li>the services these sites run on (Netlify, GitHub, OVH): report to them directly</li>
+      <li>denial of service, load testing, or scanning heavy enough to degrade a site</li>
+      <li>social engineering and physical access</li>
+      <li>findings with no security impact, such as missing best-practice headers on a subdomain</li>
+    </ul>
+
+    <h2>Safe harbour</h2>
+    <p>
+      If you test in good faith and within these rules, I won’t take legal action against you or report you to
+      anyone, and I’ll say so if someone else asks. The rules:
+    </p>
+    <ul>
+      <li>use your own accounts and data; stop and report as soon as you reach someone else’s</li>
+      <li>don’t keep, share or change data beyond what shows the problem</li>
+      <li>give me 90 days to fix it before you publish, unless we agree otherwise</li>
+    </ul>
+
+    <h2>What you can expect</h2>
+    <ul>
+      <li>a reply within a week, and news when it’s fixed</li>
+      <li>no bounty: this is a personal site</li>
+      <li>no hall of fame or thanks page</li>
+    </ul>
+
+    <p class="meta">
+      Machine-readable: <a href="/.well-known/security.txt">/.well-known/security.txt</a> (RFC 9116)
+    </p>
+  </div>
+</Base>
+
+<style>
+  .policy code {
+    font-size: 0.84em;
+  }
+</style>

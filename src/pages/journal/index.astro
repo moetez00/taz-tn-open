@@ -1,0 +1,146 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import Corner from "../../components/shell/Corner.astro";
+import "../../styles/journal.css";
+import { areaUrl, entryUrl, readingMinutes, visibleEntries, vtClass } from "../../lib/journal";
+import { formatDate } from "../../lib/format";
+
+const entries = await visibleEntries();
+const areaName = new Map((await getCollection("areas")).map((area) => [area.id, area.data.name]));
+
+// The preview's figure is drawn from the entry itself: its section headings as an ELF-style
+// list, and its facts as a small profile with meters (a level is 1 to 4 filled steps).
+const LEVEL = { easy: 1, medium: 2, hard: 3, insane: 4 } as const;
+const cards = await Promise.all(
+  entries.map(async (entry) => {
+    const { headings } = await render(entry);
+    const minutes = readingMinutes(entry.body);
+    const { difficulty, arch, points } = entry.data;
+    return {
+      entry,
+      minutes,
+      sections: headings.filter((heading) => heading.depth === 2).slice(0, 4),
+      facts: [
+        difficulty && { label: "difficulty", value: difficulty, level: LEVEL[difficulty] },
+        arch && { label: "arch", value: arch },
+        points !== undefined && { label: "points", value: String(points) },
+        { label: "read", value: `${minutes} min`, level: Math.min(4, Math.ceil(minutes / 5)) },
+      ].filter(Boolean) as { label: string; value: string; level?: number }[],
+    };
+  }),
+);
+---
+
+<Base
+  title="Journal · Taz"
+  description="Writeups for pwn challenges Taz wrote or solved, grouped by technique."
+  current="journal"
+>
+  <div class="jr-split">
+    <div class="jr-side">
+      <header class="jr-head">
+        <h1 class="page-title">Journal</h1>
+        <p class="status">Writeups for challenges I solve, grouped by technique.</p>
+      </header>
+
+      <ol class="rows jr-list">
+        {
+          entries.map((entry, index) => (
+            <li class={index === 0 ? "on" : undefined}>
+              <i class="jr-dot" aria-hidden="true" />
+              <span class="meta jr-date">
+                {formatDate(entry.data.published)}
+                {entry.data.draft && <span class="badge badge-draft">Draft</span>}
+              </span>
+              <a class:list={["row-title", vtClass(entry)]} href={entryUrl(entry)}>{entry.data.title}</a>
+              {entry.data.techniques.length > 0 && <span class="meta jr-tech">{entry.data.techniques.join(" · ")}</span>}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="jr-pvs">
+      {
+        cards.map(({ entry, minutes, sections, facts }, index) => (
+          <div class:list={["jr-pv", index === 0 && "on"]}>
+            <article class="jr-card panel">
+              {/* The chrome (corners, stars) is the same on every card, so only the first, the one
+                  shown with no script, carries it; journal.ts copies it to the rest (PLAN.md §6). */}
+              {index === 0 && <><Corner class="pc tl" /><Corner class="pc tr" /><Corner class="pc bl" /><Corner class="pc br" /></>}
+              <p class="meta jr-crumb">
+                <span>
+                  Journal / <a href={areaUrl(entry.data.area.id)}>{areaName.get(entry.data.area.id)}</a>
+                </span>
+                <span>
+                  {index + 1} / {cards.length}
+                </span>
+              </p>
+              <h2 class="jr-title">{entry.data.title}</h2>
+              {entry.data.summary && <p class="jr-sum">{entry.data.summary}</p>}
+              <p class="meta">{[formatDate(entry.data.published), `${minutes} min read`, ...entry.data.techniques.slice(0, 2)].join(" · ")}</p>
+
+              <div class="jr-fig">
+                {
+                  sections.length > 0 && (
+                    <div class="jr-box">
+                      <p class="jr-label">{areaName.get(entry.data.area.id)}</p>
+                      <ul class="jr-secs">
+                        {sections.map((heading, i) => (
+                          <li>
+                            <span>.{heading.slug}</span>
+                            {i === sections.length - 1 && <b aria-hidden="true" />}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                }
+                <div class="jr-box jr-box-facts">
+                  <p class="jr-label">profile</p>
+                  <dl class="jr-facts">
+                    {facts.map((fact) => (
+                      <div>
+                        <dt>{fact.label}</dt>
+                        <dd>
+                          {fact.level && (
+                            <span class:list={["jr-meter", `m${fact.level}`]} aria-hidden="true">
+                              <i />
+                            </span>
+                          )}
+                          {fact.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              </div>
+
+              <a class="jr-cta" href={entryUrl(entry)}>
+                Read full article <span aria-hidden="true">→</span>
+              </a>
+              {index === 0 && (
+                <svg class="jr-stars" viewBox="0 0 80 80" aria-hidden="true" focusable="false">
+                  <path d="M40 40 40 10M40 40 64 22M40 40 68 48M40 40 22 66M40 40 12 44" />
+                  <path d="M40 34 46 40 40 46 34 40Z" />
+                  <circle cx="40" cy="8" r="2" />
+                  <circle cx="66" cy="21" r="2" />
+                  <circle cx="70" cy="49" r="2" />
+                  <circle cx="21" cy="68" r="2" />
+                  <circle cx="10" cy="44" r="2" />
+                </svg>
+              )}
+            </article>
+          </div>
+        ))
+      }
+    </div>
+
+  </div>
+</Base>
+
+<script>
+  // Off the eager budget (PLAN.md §6): a separate chunk, fetched as soon as the page is up.
+  void import("../../scripts/journal");
+</script>

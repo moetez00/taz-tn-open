@@ -1,0 +1,52 @@
+---
+import KeyMap from "./KeyMap.astro";
+import Corner from "../shell/Corner.astro";
+---
+
+<dialog id="layer-keys" class="layer layer-keys" aria-labelledby="keys-title">
+  <Corner class="k tl" />
+  <Corner class="k br" />
+  <div class="panel">
+    <h2 id="keys-title" class="area-rule">Keys</h2>
+    <KeyMap />
+    <button type="button" class="close meta" data-close>Close <kbd>Esc</kbd></button>
+  </div>
+</dialog>
+
+<style>
+  /* end-4's cheatsheet layer: it slides up from the bottom edge. */
+  .layer-keys {
+    margin-block: auto 0;
+    width: min(34rem, 100%);
+    border-bottom: 0;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .layer-keys:not([open]) {
+    translate: 0 100%;
+  }
+
+  @starting-style {
+    .layer-keys[open] {
+      translate: 0 100%;
+    }
+  }
+
+  .close {
+    justify-self: end;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--edge-lit);
+    border-radius: var(--radius);
+    background: none;
+    color: var(--ash);
+    cursor: pointer;
+    transition:
+      color var(--t-micro) var(--standard),
+      border-color var(--t-micro) var(--standard);
+  }
+
+  .close:hover {
+    color: var(--soul);
+    border-color: var(--dust);
+  }
+</style>

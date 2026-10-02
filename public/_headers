@@ -1,0 +1,24 @@
+# Security headers for every response (PLAN.md §7). Checked by scripts/check-headers.mjs.
+# Speculation-Rules prerenders a same-site page when its link is hovered, so the
+# view transition starts from a loaded page (PLAN.md §3.4).
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; require-trusted-types-for 'script'; trusted-types 'none'
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), browsing-topics=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+  Speculation-Rules: "/speculation-rules.json"
+
+/feed.xml
+  Content-Type: application/rss+xml; charset=utf-8
+
+/speculation-rules.json
+  Content-Type: application/speculationrules+json
+
+# Fingerprinted build output never changes, so it can be cached for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

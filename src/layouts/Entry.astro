@@ -1,0 +1,130 @@
+---
+import Base from "./Base.astro";
+import "../styles/prose.css";
+import "../styles/code.css";
+import Marginalia from "../components/journal/Marginalia.astro";
+import Toc from "../components/journal/Toc.astro";
+import DreamNail from "../components/journal/DreamNail.astro";
+import SeriesNav from "../components/journal/SeriesNav.astro";
+import { areaUrl, readingMinutes, vtClass, type Area, type Entry, type Event } from "../lib/journal";
+import { formatDate, isoDate } from "../lib/format";
+
+interface Props {
+  entry: Entry;
+  area: Area;
+  event?: Event;
+  headings: { depth: number; slug: string; text: string }[];
+  prev?: Entry;
+  next?: Entry;
+}
+
+const { entry, area, event, headings, prev, next } = Astro.props;
+const { title, summary, published, updated, flag, draft } = entry.data;
+const sections = headings.filter((h) => h.slug !== "footnote-label");
+const showToc = sections.filter((h) => h.depth === 2).length >= 3;
+---
+
+<Base title={`${title} · Journal · Taz`} description={summary || title} current="journal" indexable={!draft} progress>
+  <article class="entry">
+    <header class="head">
+      <p class="area-rule crumb"><a href={areaUrl(area.id)}>{area.data.name}</a></p>
+      <h1 class:list={["title", vtClass(entry)]}>{title}</h1>
+      <p class="meta stamp">
+        <time datetime={isoDate(published)}>{formatDate(published)}</time>
+        <span>{readingMinutes(entry.body)} min read</span>
+        {
+          updated && (
+            <span>
+              Updated <time datetime={isoDate(updated)}>{formatDate(updated)}</time>
+            </span>
+          )
+        }
+        {draft && <span class="badge badge-draft">Draft</span>}
+      </p>
+    </header>
+
+    <div class="margin">
+      <Marginalia entry={entry} event={event} />
+    </div>
+
+    <div class="body">
+      {showToc && <Toc headings={sections} />}
+      <div class="prose" data-prose>
+        <slot />
+      </div>
+      {flag && <DreamNail flag={flag} />}
+      <SeriesNav area={area} prev={prev} next={next} />
+    </div>
+  </article>
+</Base>
+
+<script>
+  import "../scripts/copy";
+</script>
+
+<style>
+  .entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .head {
+    display: grid;
+    gap: 0.8rem;
+    max-width: var(--measure);
+  }
+
+  .crumb a {
+    text-decoration: none;
+  }
+
+  .crumb a:hover {
+    color: var(--cloak);
+  }
+
+  .title {
+    width: fit-content;
+    font-size: var(--step-3);
+    line-height: 1.12;
+  }
+
+  .stamp {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.9rem;
+  }
+
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.25rem;
+  }
+
+  /* Wide screens: the details move into a margin column that stays in view while reading. */
+  @media (min-width: 64rem) {
+    .entry {
+      grid-template-columns: minmax(0, var(--measure)) minmax(11rem, 15rem);
+      grid-template-areas:
+        "head ."
+        "body side";
+      column-gap: clamp(2.5rem, 6vw, 5rem);
+      align-items: start;
+    }
+
+    .head {
+      grid-area: head;
+    }
+
+    .margin {
+      grid-area: side;
+      position: sticky;
+      top: 2rem;
+    }
+
+    .body {
+      grid-area: body;
+    }
+  }
+</style>

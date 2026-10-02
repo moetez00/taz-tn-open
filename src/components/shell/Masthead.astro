@@ -1,0 +1,329 @@
+---
+import { site, type Section } from "../../data/site";
+import Mask from "./Mask.astro";
+
+interface Props {
+  current?: Section;
+}
+
+const { current } = Astro.props;
+---
+
+<header class="masthead">
+  <a class="brand" href="/" data-cursor="link">
+    <Mask />
+    <span class="brand-mark">{site.handle}</span>
+  </a>
+  <nav aria-label="Primary">
+    <ul>
+      {
+        site.nav.map((item) => (
+          <li>
+            <a href={item.href} aria-current={item.id === current ? "page" : undefined}>
+              {item.label}
+              {item.id === current && (
+                <>
+                  <span class="trail" aria-hidden="true" />
+                  <span class="indicator" aria-hidden="true" />
+                  <span class="gem" aria-hidden="true" />
+                </>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="tools">
+    {/* Without JS this is a plain link to the index, which stands in for search. */}
+    <a class="search" href="/journal/" data-open="search" aria-label="Search" aria-keyshortcuts="/ Control+K Meta+K">
+      <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+        <circle cx="8.5" cy="8.5" r="5.5"></circle>
+        <path d="m12.8 12.8 4.4 4.4"></path>
+      </svg>
+      <kbd class="chord"><span class="mac">⌘</span><span class="pc">Ctrl</span> K</kbd>
+    </a>
+    <div class="motion needs-js">
+      <button type="button" class="motion-toggle">
+        <span>Motion<span class="state">: <span class="on">on</span><span class="off">off</span></span></span>
+        <span class="track" aria-hidden="true"><i class="knob"></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    padding-block: 0.75rem 0.25rem;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    justify-self: start;
+    color: var(--soul);
+    text-decoration: none;
+  }
+
+  .brand :global(.mask) {
+    color: var(--soul);
+  }
+
+  .brand :global(.mask-horns),
+  .brand :global(.mask-face) {
+    transition:
+      translate var(--t-micro) var(--spring-soft),
+      opacity var(--t-micro) var(--standard);
+  }
+
+  .brand:hover :global(.mask-horns) {
+    translate: 0 -1.5px;
+  }
+
+  .brand-mark {
+    font: 400 1.05rem / 1 var(--font-display);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+  }
+
+  ul {
+    display: flex;
+    gap: clamp(1.1rem, 3vw, 2.25rem);
+    list-style: none;
+  }
+
+  nav a {
+    position: relative;
+    display: inline-block;
+    padding-block: 0.4rem 0.7rem;
+    font-size: 1.0625rem;
+    color: var(--ash);
+    text-decoration: none;
+    transition: color var(--t-micro) var(--standard);
+  }
+
+  nav a:hover,
+  nav a[aria-current="page"] {
+    color: var(--soul);
+  }
+
+  /* A hovered link shows where the underline would land: a hairline opening from its centre. */
+  nav a:not([aria-current])::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.3rem;
+    height: 1px;
+    background: var(--dust);
+    scale: 0 1;
+    transition: scale var(--t-micro) var(--decel);
+  }
+
+  nav a:not([aria-current]):hover::after {
+    scale: 1 1;
+  }
+
+  /*
+   * Three shared elements, so the underline can travel to the next link: the line
+   * (which stretches), its slower trail, and the diamond (which keeps its shape).
+   */
+  .indicator,
+  .trail {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.3rem;
+    height: 2px;
+    background: var(--cloak);
+  }
+
+  .indicator {
+    view-transition-name: nav-indicator;
+  }
+
+  .trail {
+    opacity: 0.4;
+    view-transition-name: nav-trail;
+  }
+
+  .gem {
+    position: absolute;
+    left: 50%;
+    bottom: calc(0.3rem - 3px);
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--cloak);
+    background: var(--void);
+    transform: translateX(-50%) rotate(45deg);
+    view-transition-name: nav-gem;
+  }
+
+  .tools {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 1rem;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ash);
+    text-decoration: none;
+  }
+
+  .search svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition:
+      color var(--t-micro) var(--standard),
+      scale var(--t-micro) var(--spring-soft);
+  }
+
+  .search:hover {
+    color: var(--soul);
+  }
+
+  .search:hover svg {
+    scale: 1.12;
+  }
+
+  .chord {
+    padding: 0.05em 0.5em;
+    border-color: var(--edge-lit);
+    border-bottom-width: 1px;
+    border-radius: 4px;
+    background: var(--panel);
+    color: var(--ash);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    transition:
+      color var(--t-micro) var(--standard),
+      border-color var(--t-micro) var(--standard);
+  }
+
+  .search:hover .chord {
+    color: var(--soul);
+    border-color: var(--dust);
+  }
+
+  .mac,
+  :global(:root[data-mac]) .pc {
+    display: none;
+  }
+
+  :global(:root[data-mac]) .mac {
+    display: inline;
+  }
+
+  .motion-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.2rem 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.9375rem;
+    color: var(--ash);
+    cursor: pointer;
+    transition: color var(--t-micro) var(--standard);
+  }
+
+  .motion-toggle:hover {
+    color: var(--soul);
+  }
+
+  /* Read out, not shown: the switch says it. Zero-size text stays inline, so the name is "Motion: on". */
+  .state {
+    font-size: 0;
+  }
+
+  .off,
+  :global(:root[data-motion="off"]) .on {
+    display: none;
+  }
+
+  :global(:root[data-motion="off"]) .off {
+    display: inline;
+  }
+
+  /* The switch: the knob springs across, and the track lights when motion is on. */
+  .track {
+    position: relative;
+    width: 2.1rem;
+    height: 1.15rem;
+    border: 1px solid var(--edge-lit);
+    border-radius: 999px;
+    background: var(--panel);
+    transition: border-color var(--t-micro) var(--standard);
+  }
+
+  .knob {
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    width: calc(1.15rem - 6px);
+    height: calc(1.15rem - 6px);
+    border-radius: 50%;
+    background: var(--soul);
+    translate: calc(2.1rem - 1.15rem) 0;
+    transition:
+      translate var(--t-spatial) var(--spring-soft),
+      background-color var(--t-micro) var(--standard);
+  }
+
+  :global(:root[data-motion="off"]) .knob {
+    translate: 0 0;
+    background: var(--dust);
+  }
+
+  :global(:root[data-motion="off"]) .track {
+    border-color: var(--line-2);
+  }
+
+  /* The system setting already stills the site; the switch would only mislead. */
+  @media (prefers-reduced-motion: reduce) {
+    .motion {
+      display: none;
+    }
+  }
+
+  /* Touch has no keyboard shortcut to show. */
+  @media (hover: none) and (pointer: coarse) {
+    .chord {
+      display: none;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .masthead {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    nav {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: center;
+    }
+  }
+
+  @media (max-width: 30rem) {
+    .brand-mark {
+      letter-spacing: 0.22em;
+    }
+
+    .tools {
+      gap: 0.75rem;
+    }
+  }
+</style>

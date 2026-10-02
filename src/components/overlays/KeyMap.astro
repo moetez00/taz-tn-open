@@ -1,0 +1,57 @@
+---
+// The keyboard map (PLAN.md §3.3). Shown in the ? layer and on About.
+const KEYS: [string[], string][] = [
+  [["j", "k"], "Next and previous row"],
+  [["↓", "↑"], "The same, once a row has focus"],
+  [["Enter"], "Open the row"],
+  [["1", "2", "3", "4"], "Home, Projects, Journal, About"],
+  [["/"], "Search"],
+  [["Ctrl", "K"], "Search, from anywhere (⌘ K on a Mac)"],
+  [["?"], "This list"],
+  [["Esc"], "Close a layer"],
+  [["g", "g"], "Back to the top"],
+];
+---
+
+<dl class="keymap">
+  {
+    KEYS.map(([keys, action]) => (
+      <div>
+        <dt>
+          {keys.map((key) => (
+            <kbd>{key}</kbd>
+          ))}
+        </dt>
+        <dd>{action}</dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .keymap {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .keymap > div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: baseline;
+    padding-block: 0.55rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  dt {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ash);
+  }
+</style>

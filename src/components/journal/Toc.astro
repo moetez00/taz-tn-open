@@ -1,0 +1,75 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const tree: (Heading & { children: Heading[] })[] = [];
+for (const heading of Astro.props.headings) {
+  if (heading.depth === 2) tree.push({ ...heading, children: [] });
+  else if (heading.depth === 3) tree.at(-1)?.children.push(heading);
+}
+---
+
+<details class="toc">
+  <summary>Contents</summary>
+  <ol>
+    {
+      tree.map((h2) => (
+        <li>
+          <a href={`#${h2.slug}`}>{h2.text}</a>
+          {h2.children.length > 0 && (
+            <ol>
+              {h2.children.map((h3) => (
+                <li>
+                  <a href={`#${h3.slug}`}>{h3.text}</a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</details>
+
+<style>
+  .toc {
+    max-width: var(--measure);
+    border-block: 1px solid var(--line);
+  }
+
+  summary {
+    padding-block: 0.8rem;
+    cursor: pointer;
+    font: 400 var(--step--1) / 1.2 var(--font-display);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ash);
+  }
+
+  summary:hover {
+    color: var(--soul);
+  }
+
+  ol {
+    display: grid;
+    gap: 0.3rem;
+    list-style: none;
+    padding: 0 0 1rem;
+  }
+
+  ol ol {
+    padding: 0.3rem 0 0 1.25rem;
+  }
+
+  a {
+    font-size: var(--step--1);
+    color: var(--ash);
+  }
+</style>

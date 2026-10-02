@@ -1,0 +1,229 @@
+---
+// Hidden (PLAN.md §2, from Direction A): the Journal as an ink map. Reached from
+// the footer's unlabeled mark. The text index below is the source of truth; the
+// map is the enhancement, and it works without JS (pins just never ink in).
+import Base from "../../layouts/Base.astro";
+import { entryUrl, groupByArea, visibleEntries } from "../../lib/journal";
+import { HOME, VIEW, layout } from "../../lib/map";
+
+const regions = layout(await groupByArea(await visibleEntries()));
+const total = regions.reduce((sum, region) => sum + region.pins.length, 0);
+---
+
+<Base
+  title="Map · Journal · Taz"
+  description="The Journal as a map. Pins ink in once you've read an entry and come back home."
+  current="journal"
+  indexable={false}
+>
+  <header class="section">
+    <p class="meta crumb"><a href="/journal/">Journal</a></p>
+    <h1 class="page-title">Map</h1>
+    <p class="status">
+      Pins ink in once you’ve read an entry and come back home, the way a map fills in when you rest.
+      <span class="count" data-total={total}></span>
+    </p>
+  </header>
+
+  <figure class="map">
+    <svg viewBox={`0 0 ${VIEW.width} ${VIEW.height}`} role="group" aria-labelledby="map-title">
+      <title id="map-title">Map of the Journal</title>
+      <defs>
+        <pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" class="hatch"></line>
+        </pattern>
+      </defs>
+      {
+        regions.map((region) => (
+          <g class="region">
+            <path d={region.outline} class="outline" />
+            <text x={region.label.x} y={region.label.y} class="region-name" text-anchor="middle">
+              {region.area.data.name.toUpperCase()}
+            </text>
+            {region.pins.map((pin) => (
+              <a href={entryUrl(pin.entry)} class="pin" aria-label={pin.entry.data.title}>
+                <path d={pin.route} class="route" pathLength="1" />
+                <circle cx={pin.x} cy={pin.y} r="15" class="hit" />
+                <circle cx={pin.x} cy={pin.y} r="6" class="dot" />
+                <text x={pin.x} y={pin.y - 13} class="pin-label" text-anchor="middle">
+                  {pin.entry.data.title}
+                </text>
+              </a>
+            ))}
+          </g>
+        ))
+      }
+      <g class="home" aria-hidden="true">
+        <rect x={HOME.x - 6} y={HOME.y - 6} width="12" height="12" transform={`rotate(45 ${HOME.x} ${HOME.y})`} class="home-mark" />
+        <text x={HOME.x} y={HOME.y + 28} class="home-label" text-anchor="middle">you are here</text>
+      </g>
+    </svg>
+  </figure>
+
+  <section class="section" aria-labelledby="regions-heading">
+    <h2 id="regions-heading" class="area-rule">Regions</h2>
+    <ul class="rows regions">
+      {
+        regions.map((region) => (
+          <li>
+            <span class="row-title">{region.area.data.name}</span>
+            <ul class="entries">
+              {region.pins.map((pin) => (
+                <li>
+                  <a href={entryUrl(pin.entry)} data-entry>
+                    {pin.entry.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>
+
+<script>
+  import "../../scripts/map";
+</script>
+
+<style>
+  .crumb a {
+    color: var(--ash);
+  }
+
+  .map {
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--void);
+    /* Pins and labels are drawn for a wide canvas: on a phone it scrolls, and the list below is the way in. */
+    overflow-x: auto;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    min-width: 40rem;
+    height: auto;
+  }
+
+  .hatch {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+
+  .outline {
+    fill: url(#hatch);
+    stroke: var(--ash);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+  }
+
+  .region-name {
+    font: 400 15px var(--font-display);
+    letter-spacing: 0.3em;
+    fill: var(--ash);
+  }
+
+  /* Unread pins are drawn dashed; inked ones are solid (map.ts adds .inked). */
+  .dot {
+    fill: var(--void);
+    stroke: var(--ash);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2.4;
+    transition:
+      fill var(--t-effect) var(--standard),
+      stroke var(--t-effect) var(--standard);
+  }
+
+  .pin:global(.inked) .dot {
+    fill: var(--soul);
+    stroke: var(--soul);
+    stroke-dasharray: none;
+  }
+
+  /* Hovering or focusing a pin draws the route from home, 327 ms on the spring.
+     Clicking never waits for it. */
+  /* Only the pin takes the pointer, through a hit circle bigger than the dot. */
+  .hit {
+    fill: transparent;
+  }
+
+  .route,
+  .dot,
+  .pin-label {
+    pointer-events: none;
+  }
+
+  .route {
+    fill: none;
+    stroke: var(--cloak);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset var(--t-spatial) var(--spring);
+  }
+
+  .pin:is(:hover, :focus-visible) .route {
+    stroke-dashoffset: 0;
+  }
+
+  /* A void halo keeps the label legible over the hatching. */
+  .pin-label {
+    font: 400 13px var(--font-mono);
+    fill: var(--soul);
+    stroke: var(--void);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--t-effect) var(--standard);
+  }
+
+  .pin:is(:hover, :focus-visible) .pin-label {
+    opacity: 1;
+  }
+
+  .pin:focus-visible {
+    outline: none;
+  }
+
+  .pin:focus-visible .dot {
+    stroke: var(--cloak);
+    stroke-width: 2.5;
+  }
+
+  .home-mark {
+    fill: var(--cloak);
+  }
+
+  .home-label {
+    font: 400 12px var(--font-mono);
+    fill: var(--ash);
+  }
+
+  .regions > li {
+    grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  }
+
+  .entries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    list-style: none;
+  }
+
+  .entries :global(a.inked)::after {
+    content: " ·";
+    color: var(--cloak);
+  }
+
+  @media (max-width: 40rem) {
+    .regions > li {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

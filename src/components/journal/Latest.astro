@@ -1,0 +1,31 @@
+---
+import { entryUrl, readingMinutes, type Area, type Entry } from "../../lib/journal";
+
+interface Props {
+  entry: Entry;
+  area: Area;
+}
+
+const { entry, area } = Astro.props;
+---
+
+<p class="latest">
+  <span class="label meta">Latest</span>
+  <a href={entryUrl(entry)}>{entry.data.title}</a>
+  <span class="meta">{area.data.name} · {readingMinutes(entry.body)} min</span>
+</p>
+
+<style>
+  .latest {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.9rem;
+    font-size: var(--step-1);
+  }
+
+  .label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+</style>

@@ -1,0 +1,49 @@
+---
+import { entryUrl, ROLE, vtClass, type Entry, type Event } from "../../lib/journal";
+
+interface Props {
+  entry: Entry;
+  event?: Event;
+}
+
+const { entry, event } = Astro.props;
+const { title, techniques, role, draft } = entry.data;
+---
+
+<li class="entry-row">
+  <div class="main">
+    <a class:list={["row-title", vtClass(entry)]} href={entryUrl(entry)}>{title}</a>
+    {techniques.length > 0 && <span class="meta">{techniques.join(" · ")}</span>}
+  </div>
+  <div class="row-side meta">
+    {draft && <span class="badge badge-draft">Draft</span>}
+    {role && <span class="badge" title={ROLE[role].label}>{ROLE[role].badge}</span>}
+    {event && <span>{event.data.name}</span>}
+  </div>
+</li>
+
+<style>
+  .main {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .row-side {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 0.4rem 0.75rem;
+  }
+
+  @media (max-width: 40rem) {
+    .entry-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .row-side {
+      justify-content: flex-start;
+    }
+  }
+</style>

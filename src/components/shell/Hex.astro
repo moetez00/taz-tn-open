@@ -1,0 +1,16 @@
+---
+// A rounded hexagon holding one of the site's own glyphs (drawn for this site, 24 x 24).
+import { GLYPHS, type GlyphName } from "../../lib/glyphs";
+
+interface Props {
+  name: GlyphName;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+---
+
+<span class:list={["hex", className]} aria-hidden="true">
+  <svg class="hex-shape" viewBox="0 0 40 40" focusable="false"><path d="M20 2.5 35.5 11.2v17.6L20 37.5 4.5 28.8V11.2Z"></path></svg>
+  <svg class="glyph" viewBox="0 0 24 24" focusable="false" set:html={GLYPHS[name]} />
+</span>

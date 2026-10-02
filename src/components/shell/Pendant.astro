@@ -1,0 +1,45 @@
+---
+// A lantern hanging from the frame's top right edge on the home page: a chain, a leaf and a bead.
+---
+
+<svg class="pendant" viewBox="0 0 24 96" aria-hidden="true" focusable="false">
+  <path class="p-chain" d="M12 0v50" pathLength="1"></path>
+  <path class="p-leaf" d="M12 50c7 7 8 17 0 28-8-11-7-21 0-28Z"></path>
+  <path class="p-vein" d="M12 56v18"></path>
+  <circle class="p-bead" cx="12" cy="86" r="2"></circle>
+  <circle class="p-bead" cx="12" cy="92" r="1.2"></circle>
+</svg>
+
+<style>
+  .pendant {
+    display: block;
+    width: 1.5rem;
+    height: 6rem;
+    overflow: visible;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .p-chain {
+    stroke: var(--edge-lit);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+  }
+
+  .p-leaf {
+    stroke: var(--edge-lit);
+    stroke-width: 1.2;
+    fill: rgb(201 211 230 / 0.08);
+  }
+
+  .p-vein {
+    stroke: var(--edge);
+    stroke-width: 1;
+  }
+
+  .p-bead {
+    fill: var(--edge-lit);
+    stroke: none;
+  }
+</style>

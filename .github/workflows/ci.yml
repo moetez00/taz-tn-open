@@ -1,0 +1,119 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Monthly rebuild on main, so security.txt's Expires date never lapses (it ships in M4).
+    - cron: "23 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  checks:
+    name: Build and gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run check
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Drafts are built into previews for review and left out once SITE_STAGE=live.
+      - name: Build
+        run: npm run build
+        env:
+          SITE_STAGE: ${{ vars.SITE_STAGE }}
+
+      - name: Gates (inline code, contrast, budget, headers)
+        run: npm run gates
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (CSP, accessibility, keyboard, budget, reduced motion)
+        run: npm run test:e2e
+
+      - name: Lighthouse (mobile, 95+ performance, 100 elsewhere)
+        run: npm run lhci
+
+      - name: Keep reports when something fails
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reports
+          path: |
+            playwright-report/
+            test-results/
+            .lighthouseci/
+          retention-days: 7
+
+      - name: Keep the tested build for deployment
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Netlify
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Fetch the build that passed the checks
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+
+      - name: Keep pre-launch deploys out of search indexes
+        run: node scripts/stage-headers.mjs
+        env:
+          SITE_STAGE: ${{ vars.SITE_STAGE }}
+
+      - name: Package
+        run: cd dist && zip -qr ../site.zip .
+
+      - name: Upload to Netlify
+        run: node scripts/deploy-netlify.mjs site.zip
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      # Production, not the deploy's permalink: the permalink always serves this
+      # build, so it can't show what visitors actually get.
+      - name: Verify the headers production serves
+        run: node scripts/check-headers.mjs --url "$(node -p 'require("./deploy.json").siteUrl')"
